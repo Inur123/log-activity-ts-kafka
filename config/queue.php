@@ -71,6 +71,7 @@ return [
             'retry_after' => 90,
             'block_for' => null,
             'after_commit' => false,
+             'client' => env('REDIS_CLIENT', 'phpredis'),
         ],
 
         'deferred' => [
