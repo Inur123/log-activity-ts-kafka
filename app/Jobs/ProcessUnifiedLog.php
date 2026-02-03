@@ -58,10 +58,10 @@ class ProcessUnifiedLog implements ShouldQueue
             UnifiedLog::create([
                 'application_id' => $appId,
                 'seq' => $nextSeq,
-                'log_type' => strtoupper($this->data['log_type']),
+                'log_type' => substr(strtoupper($this->data['log_type']), 0, 100),
                 'payload' => $payload,
-                'ip_address' => $this->data['ip_address'] ?? null,
-                'user_agent' => $this->data['user_agent'] ?? null,
+                'ip_address' => isset($this->data['ip_address']) ? substr($this->data['ip_address'], 0, 45) : null,
+                'user_agent' => isset($this->data['user_agent']) ? substr($this->data['user_agent'], 0, 1000) : null,
                 'hash' => $hash,
                 'prev_hash' => $prevHash,
             ]);

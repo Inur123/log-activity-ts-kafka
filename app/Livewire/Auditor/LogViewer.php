@@ -183,8 +183,8 @@ class LogViewer extends Component
 
         if ($this->log_type !== '') $query->where('log_type', $this->log_type);
 
-        if ($this->from) $query->whereDate('created_at', '>=', $this->from);
-        if ($this->to)   $query->whereDate('created_at', '<=', $this->to);
+        if ($this->from) $query->where('created_at', '>=', $this->from . ' 00:00:00');
+        if ($this->to)   $query->where('created_at', '<=', $this->to . ' 23:59:59');
 
         //  Validation Status Filter
         if ($this->validation_status !== '') {
@@ -216,18 +216,33 @@ class LogViewer extends Component
     {
         $base = $this->buildQuery();
 
-        $perPage = $this->per_page;
+        // 1. Hitung total (ringan, COUNT(*))
         $total = (clone $base)->count();
+        $perPage = $this->per_page;
         $lastPage = max(1, (int) ceil($total / $perPage));
 
+        // Fix page out of bounds
+        if ($this->page > $lastPage) $this->page = $lastPage;
+
+        // 2. Ambil ID saja untuk pagination/sorting (Late Row Lookups)
+        // Ini mencegah MySQL kehabisan memory saat sorting JSON payload yang besar
         $this->sort === 'oldest'
             ? $base->oldest('created_at')
             : $base->latest('created_at');
 
-        $lastPage = max(1, (int) ceil($total / $perPage));
-        if ($this->page > $lastPage) $this->page = $lastPage;
+        // Ambil ID-nya saja yang sudah ter-sort & ter-limit
+        $ids = $base->forPage($this->page, $perPage)->pluck('id');
 
-        $items = $base->forPage($this->page, $perPage)->get();
+        // 3. Ambil data lengkap berdasarkan ID tersebut (tetap menjaga urutan)
+        if ($ids->isNotEmpty()) {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $items = UnifiedLog::with('application')
+                ->whereIn('id', $ids)
+                ->orderByRaw("FIELD(id, $placeholders)", $ids->toArray())
+                ->get();
+        } else {
+            $items = collect();
+        }
 
         return [$items, $total, $lastPage];
     }
@@ -292,13 +307,13 @@ class LogViewer extends Component
 
                 return view('livewire.auditor.log-viewer.index', [
                     'logs' => $logs,
-                    'applications' => Application::orderBy('name')->get(),
-                    'logTypeOptions' => UnifiedLog::query()
+                    'applications' => \Illuminate\Support\Facades\Cache::remember('apps_list', 600, fn() => Application::orderBy('name')->get()),
+                    'logTypeOptions' => \Illuminate\Support\Facades\Cache::remember('log_types_list', 600, fn() => UnifiedLog::query()
                         ->whereNotNull('log_type')
                         ->where('log_type', '!=', '')
                         ->distinct()
                         ->orderBy('log_type')
-                        ->pluck('log_type'),
+                        ->pluck('log_type')),
                     'page' => $this->page,
                     'per_page' => $this->per_page,
                     'total' => $total,

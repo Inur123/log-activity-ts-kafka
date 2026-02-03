@@ -76,19 +76,14 @@ class HashChainService
      */
     public function verifyChainByApplication(string $applicationId): array
     {
-        $logs = UnifiedLog::where('application_id', $applicationId)
-            ->orderBy('seq')
-            ->get([
-                'id',
-                'seq',
-                'log_type',
-                'payload',
-                'hash',
-                'prev_hash',
-                'created_at',
-            ]);
+        $query = UnifiedLog::where('application_id', $applicationId)
+            ->orderBy('seq');
 
-        if ($logs->isEmpty()) {
+        // Gunakan cursor() untuk memory efficiency (1 log per iterasi)
+        // Jangan gunakan get() karena akan crash jika logs > 100k
+        $logs = $query->cursor();
+
+        if ($query->doesntExist()) {
             return [
                 'valid' => true,
                 'message' => 'No logs to verify',
@@ -100,8 +95,12 @@ class HashChainService
         $errors = [];
         $prev = str_repeat('0', 64);
         $expectedSeq = 1;
+        $totalChecked = 0;
 
         foreach ($logs as $log) {
+            $totalChecked++;
+
+            // ... (rest of logic remains same, just ensure to use $totalChecked at end)
 
             $prevHash = $log->prev_hash ?: str_repeat('0', 64);
 
@@ -171,7 +170,7 @@ class HashChainService
             'valid' => empty($errors),
             'message' => empty($errors) ? 'Hash chain valid' : 'Hash chain broken',
             'errors' => $errors,
-            'total_checked' => $logs->count(),
+            'total_checked' => $totalChecked,
 
             //  info broken pertama supaya gampang highlight
             'broken_at_seq' => !empty($errors) ? ($errors[0]['seq'] ?? null) : null,

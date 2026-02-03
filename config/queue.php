@@ -40,7 +40,7 @@ return [
             'connection' => env('DB_QUEUE_CONNECTION'),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
+            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 150), // Recommended: 150 (must be > job timeout 120s)
             'after_commit' => false,
         ],
 
@@ -68,10 +68,18 @@ return [
             'driver' => 'redis',
             'connection' => 'default',
             'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => 90,
+            'retry_after' => 150, // Recommended: 150 (must be > job timeout 120s)
             'block_for' => null,
             'after_commit' => false,
-             'client' => env('REDIS_CLIENT', 'phpredis'),
+            'client' => env('REDIS_CLIENT', 'phpredis'),
+        ],
+
+        'kafka' => [
+            'driver' => 'kafka',
+            'queue' => env('KAFKA_QUEUE', 'default'),
+            'brokers' => env('KAFKA_BROKER_LIST', 'localhost:9092'),
+            'sleep_on_error' => 3,
+            'retry_after' => 150, // Must be > job timeout
         ],
 
         'deferred' => [
