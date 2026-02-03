@@ -118,7 +118,7 @@
                 <div wire:loading>
                     <i class="fa-solid fa-spinner fa-spin"></i> Loading...
                 </div>
-                <div>Total: {{ $total }} • Page {{ $pageIndex }} / {{ $lastPage }}</div>
+                <div>Total: {{ $total }} • Page {{ $page }} / {{ $lastPage }}</div>
             </div>
         </div>
     </div>
@@ -304,7 +304,7 @@
 
                         $payloadPreview = json_encode($previewArr, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-                        $no = ($pageIndex - 1) * $per_page + $loop->iteration;
+                        $no = ($page - 1) * $per_page + $loop->iteration;
                     @endphp
 
                     <div
@@ -368,46 +368,45 @@
         </div>
 
         {{-- Pagination --}}
-        @if ($hasPrev || $hasNext)
+        @if ($lastPage > 1)
             <div class="border-t border-slate-200 p-4 sm:p-6">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
                     <div class="text-xs text-slate-500">
                         Total <span class="font-semibold text-slate-700">{{ $total }}</span>
-                        • Page <span class="font-semibold text-slate-700">{{ $pageIndex }}</span> /
+                        • Page <span class="font-semibold text-slate-700">{{ $page }}</span> /
                         <span class="font-semibold text-slate-700">{{ $lastPage }}</span>
                     </div>
 
                     <div class="flex items-center justify-between sm:justify-end gap-2">
 
-                        <button type="button" wire:click="prevPage" @disabled(! $hasPrev)
+                        <button type="button" wire:click="prevPage" @disabled($page <= 1)
                             class="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             <i class="fa-solid fa-chevron-left"></i>
                             Prev
                         </button>
 
                         <div class="hidden sm:flex items-center gap-1">
-                            @if ($hasPrev)
+                            @if ($page > 1)
                                 <button type="button" wire:click="prevPage"
                                     class="h-10 w-10 inline-flex items-center justify-center rounded-xl border bg-white hover:bg-slate-50 text-sm">
-                                    {{ $pageIndex - 1 }}
+                                    {{ $page - 1 }}
                                 </button>
                             @endif
 
                             <span
                                 class="h-10 w-10 inline-flex items-center justify-center rounded-xl bg-slate-900 text-white text-sm">
-                                {{ $pageIndex }}
+                                {{ $page }}
                             </span>
 
-                            @if ($hasNext)
+                            @if ($page < $lastPage)
                                 <button type="button" wire:click="nextPage"
                                     class="h-10 w-10 inline-flex items-center justify-center rounded-xl border bg-white hover:bg-slate-50 text-sm">
-                                    {{ $pageIndex + 1 }}
+                                    {{ $page + 1 }}
                                 </button>
                             @endif
                         </div>
-                        <button type="button" wire:click="nextPage"
-                            @disabled(! $hasNext)
+                        <button type="button" wire:click="nextPage" @disabled($page >= $lastPage)
                             class="h-10 inline-flex items-center gap-2 px-4 rounded-xl border bg-white hover:bg-slate-50 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             Next
                             <i class="fa-solid fa-chevron-right"></i>

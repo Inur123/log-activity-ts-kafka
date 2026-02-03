@@ -37,17 +37,7 @@ class LogViewer extends Component
     public string $to = '';
     public int $per_page = 25;
     public string $sort = 'newest';
-    public ?string $cursorCreatedAt = null;
-    public ?string $cursorId = null;
-    public string $cursorDirection = 'next';
-    public array $cursorStack = [];
-    public bool $hasNext = false;
-    public bool $hasPrev = false;
-    public int $pageIndex = 1;
-    public ?string $currentFirstCreatedAt = null;
-    public ?string $currentFirstId = null;
-    public ?string $currentLastCreatedAt = null;
-    public ?string $currentLastId = null;
+    public int $page = 1;
 
     //  SECURITY STATUS
     public ?array $chainStatus = null;
@@ -74,43 +64,27 @@ class LogViewer extends Component
             'per_page',
             'sort'
         ], true)) {
-            $this->resetCursor();
+            $this->page = 1;
         }
     }
 
-    private function resetCursor(): void
+    public function gotoPage(int $p, int $lastPage): void
     {
-        $this->cursorCreatedAt = null;
-        $this->cursorId = null;
-        $this->cursorDirection = 'next';
-        $this->cursorStack = [];
+        $this->page = max(1, min($p, $lastPage));
     }
 
     public function nextPage(): void
     {
-        if ($this->currentLastCreatedAt === null || $this->currentLastId === null) return;
-
-        if ($this->currentFirstCreatedAt !== null && $this->currentFirstId !== null) {
-            $this->cursorStack[] = [
-                'created_at' => $this->currentFirstCreatedAt,
-                'id' => $this->currentFirstId,
-            ];
-        }
-
-        $this->cursorCreatedAt = $this->currentLastCreatedAt;
-        $this->cursorId = $this->currentLastId;
-        $this->cursorDirection = 'next';
+        // Re-calculate last page to ensure validity, or just increment and let getFilteredLogs handle clamping
+        // For simplicity and to fix the crash, we just increment.
+        // Ideally we should check against max page, but that requires querying count.
+        // The view logic protects against clicking Next if on last page.
+        $this->page++;
     }
 
     public function prevPage(): void
     {
-        if (empty($this->cursorStack)) return;
-        if ($this->currentFirstCreatedAt === null || $this->currentFirstId === null) return;
-
-        $this->cursorCreatedAt = $this->currentFirstCreatedAt;
-        $this->cursorId = $this->currentFirstId;
-        $this->cursorDirection = 'prev';
-        array_pop($this->cursorStack);
+        if ($this->page > 1) $this->page--;
     }
 
     public function resetFilters(): void
@@ -124,7 +98,7 @@ class LogViewer extends Component
         $this->to = '';
         $this->per_page = 25;
         $this->sort = 'newest';
-        $this->resetCursor();
+        $this->page = 1;
     }
 
     /**
@@ -246,64 +220,16 @@ class LogViewer extends Component
         $total = (clone $base)->count();
         $lastPage = max(1, (int) ceil($total / $perPage));
 
-        $sortDirection = $this->sort === 'oldest' ? 'asc' : 'desc';
-        $queryDirection = ($this->sort === 'oldest' && $this->cursorDirection === 'prev') ? 'desc' : $sortDirection;
+        $this->sort === 'oldest'
+            ? $base->oldest('created_at')
+            : $base->latest('created_at');
 
-        $base->orderBy('created_at', $queryDirection)
-            ->orderBy('id', $queryDirection);
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        if ($this->page > $lastPage) $this->page = $lastPage;
 
-        if ($this->cursorCreatedAt !== null && $this->cursorId !== null) {
-            $operator = '>';
-            if ($this->sort === 'oldest') {
-                $operator = $this->cursorDirection === 'next' ? '>' : '<';
-            } else {
-                $operator = $this->cursorDirection === 'next' ? '<' : '>';
-            }
+        $items = $base->forPage($this->page, $perPage)->get();
 
-            $base->where(function ($q) use ($operator) {
-                $q->where('created_at', $operator, $this->cursorCreatedAt)
-                    ->orWhere(function ($qq) use ($operator) {
-                        $qq->where('created_at', $this->cursorCreatedAt)
-                            ->where('id', $operator, $this->cursorId);
-                    });
-            });
-        }
-
-        $items = $base->limit($perPage + 1)->get();
-        $hasMore = $items->count() > $perPage;
-        if ($hasMore) {
-            $items = $items->take($perPage);
-        }
-
-        if ($this->sort === 'oldest' && $this->cursorDirection === 'prev') {
-            $items = $items->reverse()->values();
-        }
-
-        $this->currentFirstCreatedAt = $items->first()?->created_at?->toDateTimeString();
-        $this->currentFirstId = $items->first()?->id;
-        $this->currentLastCreatedAt = $items->last()?->created_at?->toDateTimeString();
-        $this->currentLastId = $items->last()?->id;
-
-        $this->hasPrev = !empty($this->cursorStack);
-        $this->pageIndex = count($this->cursorStack) + 1;
-
-        $this->hasNext = false;
-        if ($items->isNotEmpty() && $this->currentLastCreatedAt !== null && $this->currentLastId !== null) {
-            $nextCheck = $this->buildQuery();
-            $nextOperator = $this->sort === 'oldest' ? '>' : '<';
-
-            $nextCheck->where(function ($q) use ($nextOperator) {
-                $q->where('created_at', $nextOperator, $this->currentLastCreatedAt)
-                    ->orWhere(function ($qq) use ($nextOperator) {
-                        $qq->where('created_at', $this->currentLastCreatedAt)
-                            ->where('id', $nextOperator, $this->currentLastId);
-                    });
-            });
-
-            $this->hasNext = $nextCheck->exists();
-        }
-
-        return [$items, $hasMore, $total, $lastPage];
+        return [$items, $total, $lastPage];
     }
 
     private function payloadToArray(mixed $payload): array
@@ -362,7 +288,7 @@ class LogViewer extends Component
             })(),
 
             default => (function () {
-                [$logs, $hasMore, $total, $lastPage] = $this->getFilteredLogs();
+                [$logs, $total, $lastPage] = $this->getFilteredLogs();
 
                 return view('livewire.auditor.log-viewer.index', [
                     'logs' => $logs,
@@ -373,10 +299,8 @@ class LogViewer extends Component
                         ->distinct()
                         ->orderBy('log_type')
                         ->pluck('log_type'),
+                    'page' => $this->page,
                     'per_page' => $this->per_page,
-                    'pageIndex' => $this->pageIndex,
-                    'hasPrev' => $this->hasPrev,
-                    'hasNext' => $this->hasNext,
                     'total' => $total,
                     'lastPage' => $lastPage,
                     'chainStatus' => $this->chainStatus,
