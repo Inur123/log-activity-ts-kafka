@@ -37,8 +37,17 @@ class LogViewer extends Component
     public string $to = '';
     public int $per_page = 25;
     public string $sort = 'newest';
-
-    public int $page = 1;
+    public ?string $cursorCreatedAt = null;
+    public ?string $cursorId = null;
+    public string $cursorDirection = 'next';
+    public array $cursorStack = [];
+    public bool $hasNext = false;
+    public bool $hasPrev = false;
+    public int $pageIndex = 1;
+    public ?string $currentFirstCreatedAt = null;
+    public ?string $currentFirstId = null;
+    public ?string $currentLastCreatedAt = null;
+    public ?string $currentLastId = null;
 
     //  SECURITY STATUS
     public ?array $chainStatus = null;
@@ -65,23 +74,43 @@ class LogViewer extends Component
             'per_page',
             'sort'
         ], true)) {
-            $this->page = 1;
+            $this->resetCursor();
         }
     }
 
-    public function gotoPage(int $p, int $lastPage): void
+    private function resetCursor(): void
     {
-        $this->page = max(1, min($p, $lastPage));
+        $this->cursorCreatedAt = null;
+        $this->cursorId = null;
+        $this->cursorDirection = 'next';
+        $this->cursorStack = [];
     }
 
-    public function nextPage(int $lastPage): void
+    public function nextPage(): void
     {
-        if ($this->page < $lastPage) $this->page++;
+        if ($this->currentLastCreatedAt === null || $this->currentLastId === null) return;
+
+        if ($this->currentFirstCreatedAt !== null && $this->currentFirstId !== null) {
+            $this->cursorStack[] = [
+                'created_at' => $this->currentFirstCreatedAt,
+                'id' => $this->currentFirstId,
+            ];
+        }
+
+        $this->cursorCreatedAt = $this->currentLastCreatedAt;
+        $this->cursorId = $this->currentLastId;
+        $this->cursorDirection = 'next';
     }
 
     public function prevPage(): void
     {
-        if ($this->page > 1) $this->page--;
+        if (empty($this->cursorStack)) return;
+        if ($this->currentFirstCreatedAt === null || $this->currentFirstId === null) return;
+
+        $this->cursorCreatedAt = $this->currentFirstCreatedAt;
+        $this->cursorId = $this->currentFirstId;
+        $this->cursorDirection = 'prev';
+        array_pop($this->cursorStack);
     }
 
     /**
@@ -159,10 +188,6 @@ class LogViewer extends Component
     {
         $query = UnifiedLog::query()->with('application');
 
-        $this->sort === 'oldest'
-            ? $query->oldest('created_at')
-            : $query->latest('created_at');
-
         //  Filter Application
         if ($this->application_id !== '') {
             $query->where('application_id', $this->application_id);
@@ -210,15 +235,66 @@ class LogViewer extends Component
     {
         $base = $this->buildQuery();
 
-        $total = (clone $base)->count();
         $perPage = $this->per_page;
 
-        $lastPage = max(1, (int) ceil($total / $perPage));
-        if ($this->page > $lastPage) $this->page = $lastPage;
+        $sortDirection = $this->sort === 'oldest' ? 'asc' : 'desc';
+        $queryDirection = ($this->sort === 'oldest' && $this->cursorDirection === 'prev') ? 'desc' : $sortDirection;
 
-        $items = $base->forPage($this->page, $perPage)->get();
+        $base->orderBy('created_at', $queryDirection)
+            ->orderBy('id', $queryDirection);
 
-        return [$items, $total, $lastPage];
+        if ($this->cursorCreatedAt !== null && $this->cursorId !== null) {
+            $operator = '>';
+            if ($this->sort === 'oldest') {
+                $operator = $this->cursorDirection === 'next' ? '>' : '<';
+            } else {
+                $operator = $this->cursorDirection === 'next' ? '<' : '>';
+            }
+
+            $base->where(function ($q) use ($operator) {
+                $q->where('created_at', $operator, $this->cursorCreatedAt)
+                    ->orWhere(function ($qq) use ($operator) {
+                        $qq->where('created_at', $this->cursorCreatedAt)
+                            ->where('id', $operator, $this->cursorId);
+                    });
+            });
+        }
+
+        $items = $base->limit($perPage + 1)->get();
+        $hasMore = $items->count() > $perPage;
+        if ($hasMore) {
+            $items = $items->take($perPage);
+        }
+
+        if ($this->sort === 'oldest' && $this->cursorDirection === 'prev') {
+            $items = $items->reverse()->values();
+        }
+
+        $this->currentFirstCreatedAt = $items->first()?->created_at?->toDateTimeString();
+        $this->currentFirstId = $items->first()?->id;
+        $this->currentLastCreatedAt = $items->last()?->created_at?->toDateTimeString();
+        $this->currentLastId = $items->last()?->id;
+
+        $this->hasPrev = !empty($this->cursorStack);
+        $this->pageIndex = count($this->cursorStack) + 1;
+
+        $this->hasNext = false;
+        if ($items->isNotEmpty() && $this->currentLastCreatedAt !== null && $this->currentLastId !== null) {
+            $nextCheck = $this->buildQuery();
+            $nextOperator = $this->sort === 'oldest' ? '>' : '<';
+
+            $nextCheck->where(function ($q) use ($nextOperator) {
+                $q->where('created_at', $nextOperator, $this->currentLastCreatedAt)
+                    ->orWhere(function ($qq) use ($nextOperator) {
+                        $qq->where('created_at', $this->currentLastCreatedAt)
+                            ->where('id', $nextOperator, $this->currentLastId);
+                    });
+            });
+
+            $this->hasNext = $nextCheck->exists();
+        }
+
+        return [$items, $hasMore];
     }
 
     private function payloadToArray(mixed $payload): array
@@ -277,12 +353,10 @@ class LogViewer extends Component
             })(),
 
             default => (function () {
-                [$logs, $total, $lastPage] = $this->getFilteredLogs();
+                [$logs] = $this->getFilteredLogs();
 
                 return view('livewire.auditor.log-viewer.index', [
                     'logs' => $logs,
-                    'total' => $total,
-                    'lastPage' => $lastPage,
                     'applications' => Application::orderBy('name')->get(),
                     'logTypeOptions' => UnifiedLog::query()
                         ->whereNotNull('log_type')
@@ -290,8 +364,10 @@ class LogViewer extends Component
                         ->distinct()
                         ->orderBy('log_type')
                         ->pluck('log_type'),
-                    'page' => $this->page,
                     'per_page' => $this->per_page,
+                    'pageIndex' => $this->pageIndex,
+                    'hasPrev' => $this->hasPrev,
+                    'hasNext' => $this->hasNext,
                     'chainStatus' => $this->chainStatus,
                     'verifying' => $this->verifying,
 

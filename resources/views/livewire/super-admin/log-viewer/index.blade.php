@@ -317,7 +317,7 @@
 
                         $payloadPreview = json_encode($previewArr, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-                        $no = ($page - 1) * $per_page + $loop->iteration;
+                        $no = ($pageIndex - 1) * $per_page + $loop->iteration;
                     @endphp
 
                     <div
@@ -381,70 +381,23 @@
         </div>
 
         {{-- Pagination --}}
-        @if ($lastPage > 1)
-            @php
-                $current = $page;
-                $last = $lastPage;
-                $start = max(1, $current - 2);
-                $end = min($last, $current + 2);
-            @endphp
-
+        @if ($hasPrev || $hasNext)
             <div class="border-t border-slate-200 p-4 sm:p-6">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
                     <div class="text-xs text-slate-500">
-                        Page <span class="font-semibold text-slate-700">{{ $current }}</span>
-                        of <span class="font-semibold text-slate-700">{{ $last }}</span>
-                        • Total <span class="font-semibold text-slate-700">{{ $total }}</span>
+                        Halaman <span class="font-semibold text-slate-700">{{ $pageIndex }}</span>
                     </div>
 
                     <div class="flex items-center justify-between sm:justify-end gap-2">
 
-                        <button type="button" wire:click="prevPage" @disabled($current <= 1)
+                        <button type="button" wire:click="prevPage" @disabled(! $hasPrev)
                             class="h-10 inline-flex items-center gap-2 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             <i class="fa-solid fa-chevron-left"></i>
                             Prev
                         </button>
-
-                        <div class="hidden sm:flex items-center gap-1">
-                            @if ($start > 1)
-                                <button wire:click="gotoPage(1, {{ $last }})"
-                                    class="h-10 w-10 inline-flex items-center justify-center rounded-xl border bg-white hover:bg-slate-50 text-sm">
-                                    1
-                                </button>
-                                @if ($start > 2)
-                                    <span class="px-2 text-slate-400">…</span>
-                                @endif
-                            @endif
-
-                            @for ($p = $start; $p <= $end; $p++)
-                                @if ($p === $current)
-                                    <span
-                                        class="h-10 w-10 inline-flex items-center justify-center rounded-xl bg-slate-900 text-white text-sm">
-                                        {{ $p }}
-                                    </span>
-                                @else
-                                    <button wire:click="gotoPage({{ $p }}, {{ $last }})"
-                                        class="h-10 w-10 inline-flex items-center justify-center rounded-xl border bg-white hover:bg-slate-50 text-sm cursor-pointer">
-                                        {{ $p }}
-                                    </button>
-                                @endif
-                            @endfor
-
-                            @if ($end < $last)
-                                @if ($end < $last - 1)
-                                    <span class="px-2 text-slate-400">…</span>
-                                @endif
-
-                                <button wire:click="gotoPage({{ $last }}, {{ $last }})"
-                                    class="h-10 w-10 inline-flex items-center justify-center rounded-xl border bg-white hover:bg-slate-50 text-sm">
-                                    {{ $last }}
-                                </button>
-                            @endif
-                        </div>
-
-                        <button type="button" wire:click="nextPage({{ $last }})"
-                            @disabled($current >= $last)
+                        <button type="button" wire:click="nextPage"
+                            @disabled(! $hasNext)
                             class="h-10 inline-flex items-center gap-2 px-4 rounded-xl border bg-white hover:bg-slate-50 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             Next
                             <i class="fa-solid fa-chevron-right"></i>
