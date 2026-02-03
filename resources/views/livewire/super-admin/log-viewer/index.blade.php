@@ -78,28 +78,6 @@
                     </select>
                 </div>
 
-                {{-- Validation Stage --}}
-                <div class="lg:col-span-2">
-                    <label class="text-xs font-semibold text-slate-600">Stage</label>
-                    <select wire:model.live="validation_stage"
-                        class="w-full py-2.5 rounded-xl border border-slate-200 bg-white focus:border-gray-500 focus:ring-0 focus:outline-none">
-                        <option value="">All</option>
-                        <option value="BASIC">BASIC</option>
-                        <option value="PAYLOAD">PAYLOAD</option>
-                    </select>
-                </div>
-
-                {{-- Per Page --}}
-                <div class="lg:col-span-2">
-                    <label class="text-xs font-semibold text-slate-600">Per Page</label>
-                    <select wire:model.live.number="per_page"
-                        class="w-full py-2.5 rounded-xl border border-slate-200 bg-white focus:border-gray-500 focus:ring-0 focus:outline-none">
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
 
                 {{-- From --}}
                 <div class="lg:col-span-2">
@@ -125,13 +103,22 @@
                     </select>
                 </div>
 
+
+                <div class="lg:col-span-2">
+                    <label class="text-xs font-semibold text-transparent select-none">Reset</label>
+                    <button type="button" wire:click="resetFilters"
+                        class="w-full py-2.5 rounded-xl bg-slate-900 text-white text-sm hover:bg-slate-800">
+                        Reset
+                    </button>
+                </div>
+
             </div>
 
             <div class="mt-4 flex justify-between text-xs text-slate-500">
                 <div wire:loading>
                     <i class="fa-solid fa-spinner fa-spin"></i> Loading...
                 </div>
-                <div>Halaman {{ $pageIndex }}</div>
+                <div>Total: {{ $total }} • Page {{ $pageIndex }} / {{ $lastPage }}</div>
             </div>
         </div>
     </div>
@@ -386,7 +373,9 @@
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
                     <div class="text-xs text-slate-500">
-                        Halaman <span class="font-semibold text-slate-700">{{ $pageIndex }}</span>
+                        Total <span class="font-semibold text-slate-700">{{ $total }}</span>
+                        • Page <span class="font-semibold text-slate-700">{{ $pageIndex }}</span> /
+                        <span class="font-semibold text-slate-700">{{ $lastPage }}</span>
                     </div>
 
                     <div class="flex items-center justify-between sm:justify-end gap-2">
@@ -396,6 +385,27 @@
                             <i class="fa-solid fa-chevron-left"></i>
                             Prev
                         </button>
+
+                        <div class="hidden sm:flex items-center gap-1">
+                            @if ($hasPrev)
+                                <button type="button" wire:click="prevPage"
+                                    class="h-10 w-10 inline-flex items-center justify-center rounded-xl border bg-white hover:bg-slate-50 text-sm">
+                                    {{ $pageIndex - 1 }}
+                                </button>
+                            @endif
+
+                            <span
+                                class="h-10 w-10 inline-flex items-center justify-center rounded-xl bg-slate-900 text-white text-sm">
+                                {{ $pageIndex }}
+                            </span>
+
+                            @if ($hasNext)
+                                <button type="button" wire:click="nextPage"
+                                    class="h-10 w-10 inline-flex items-center justify-center rounded-xl border bg-white hover:bg-slate-50 text-sm">
+                                    {{ $pageIndex + 1 }}
+                                </button>
+                            @endif
+                        </div>
                         <button type="button" wire:click="nextPage"
                             @disabled(! $hasNext)
                             class="h-10 inline-flex items-center gap-2 px-4 rounded-xl border bg-white hover:bg-slate-50 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">

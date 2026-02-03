@@ -31,7 +31,7 @@ class LogViewer extends Component
 
     //  New Filters (tambahan seperti super-admin)
     public string $validation_status = ''; // PASSED / FAILED / ''
-    public string $validation_stage  = ''; // BASIC / PAYLOAD / ''
+    public string $validation_stage  = '';
 
     public string $from = '';
     public string $to = '';
@@ -111,6 +111,20 @@ class LogViewer extends Component
         $this->cursorId = $this->currentFirstId;
         $this->cursorDirection = 'prev';
         array_pop($this->cursorStack);
+    }
+
+    public function resetFilters(): void
+    {
+        $this->q = '';
+        $this->application_id = '';
+        $this->log_type = '';
+        $this->validation_status = '';
+        $this->validation_stage = '';
+        $this->from = '';
+        $this->to = '';
+        $this->per_page = 25;
+        $this->sort = 'newest';
+        $this->resetCursor();
     }
 
     /**
@@ -206,13 +220,6 @@ class LogViewer extends Component
             );
         }
 
-        //  Validation Stage Filter
-        if ($this->validation_stage !== '') {
-            $query->whereRaw(
-                "JSON_UNQUOTE(JSON_EXTRACT(payload, '$.validation.stage')) = ?",
-                [$this->validation_stage]
-            );
-        }
 
         if ($this->q !== '') {
             $q = trim($this->q);
@@ -236,6 +243,8 @@ class LogViewer extends Component
         $base = $this->buildQuery();
 
         $perPage = $this->per_page;
+        $total = (clone $base)->count();
+        $lastPage = max(1, (int) ceil($total / $perPage));
 
         $sortDirection = $this->sort === 'oldest' ? 'asc' : 'desc';
         $queryDirection = ($this->sort === 'oldest' && $this->cursorDirection === 'prev') ? 'desc' : $sortDirection;
@@ -294,7 +303,7 @@ class LogViewer extends Component
             $this->hasNext = $nextCheck->exists();
         }
 
-        return [$items, $hasMore];
+        return [$items, $hasMore, $total, $lastPage];
     }
 
     private function payloadToArray(mixed $payload): array
@@ -353,7 +362,7 @@ class LogViewer extends Component
             })(),
 
             default => (function () {
-                [$logs] = $this->getFilteredLogs();
+                [$logs, $hasMore, $total, $lastPage] = $this->getFilteredLogs();
 
                 return view('livewire.auditor.log-viewer.index', [
                     'logs' => $logs,
@@ -368,6 +377,8 @@ class LogViewer extends Component
                     'pageIndex' => $this->pageIndex,
                     'hasPrev' => $this->hasPrev,
                     'hasNext' => $this->hasNext,
+                    'total' => $total,
+                    'lastPage' => $lastPage,
                     'chainStatus' => $this->chainStatus,
                     'verifying' => $this->verifying,
 
