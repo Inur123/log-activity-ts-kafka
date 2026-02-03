@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
+        "knuckleswtf/scribe": "^5.6",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.41",
         "laravel/sanctum": "^4.0",
@@ -18,6 +19,7 @@
         "livewire/livewire": "^3.7",
         "maatwebsite/excel": "^3.1",
         "predis/predis": "^3.3",
+        "smartcoder01/laravel-queue-kafka": "^1.0",
         "spatie/laravel-query-builder": "^6.3"
     },
     "require-dev": {
@@ -52,7 +54,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:work kafka --queue=logs --sleep=1 --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
         ],
         "test": [
             "@php artisan config:clear --ansi",

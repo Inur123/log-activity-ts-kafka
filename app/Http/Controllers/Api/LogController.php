@@ -11,6 +11,121 @@ use App\Jobs\ProcessUnifiedLog;
 
 class LogController extends Controller
 {
+    /**
+     * Kirim log event ke sistem.
+     *
+     * Contoh payload per log_type:
+     *
+     * DATA_CREATE
+     * ```json
+     * {"log_type":"DATA_CREATE","payload":{"user_id":2,"data":{"resource":"product","id":10,"name":"Laptop"}}}
+     * ```
+     *
+     * DATA_UPDATE
+     * ```json
+     * {"log_type":"DATA_UPDATE","payload":{"user_id":2,"before":{"id":10,"price":1000},"after":{"id":10,"price":1200}}}
+     * ```
+     *
+     * DATA_DELETE
+     * ```json
+     * {"log_type":"DATA_DELETE","payload":{"user_id":2,"id":10,"reason":"Deleted by admin"}}
+     * ```
+     *
+     * STATUS_CHANGE
+     * ```json
+     * {"log_type":"STATUS_CHANGE","payload":{"user_id":2,"id":99,"from":"draft","to":"published"}}
+     * ```
+     *
+     * ACCESS_ENDPOINT
+     * ```json
+     * {"log_type":"ACCESS_ENDPOINT","payload":{"user_id":2,"endpoint":"/products","method":"GET","status":200}}
+     * ```
+     *
+     * DOWNLOAD_DOCUMENT
+     * ```json
+     * {"log_type":"DOWNLOAD_DOCUMENT","payload":{"user_id":2,"document_id":"DOC-99","document_name":"report.pdf"}}
+     * ```
+     *
+     * SEND_EXTERNAL
+     * ```json
+     * {"log_type":"SEND_EXTERNAL","payload":{"user_id":2,"channel":"EMAIL","to":"customer@gmail.com","message":"Invoice sent"}}
+     * ```
+     *
+     * AUTH_LOGIN
+     * ```json
+     * {"log_type":"AUTH_LOGIN","payload":{"user_id":2,"email":"admin@gmail.com","device":"Chrome Windows"}}
+     * ```
+     *
+     * AUTH_LOGOUT
+     * ```json
+     * {"log_type":"AUTH_LOGOUT","payload":{"user_id":2,"email":"admin@gmail.com"}}
+     * ```
+     *
+     * AUTH_LOGIN_FAILED
+     * ```json
+     * {"log_type":"AUTH_LOGIN_FAILED","payload":{"user_id":null,"email":"admin@gmail.com","device":"Firefox Linux"}}
+     * ```
+     *
+     * BULK_IMPORT
+     * ```json
+     * {"log_type":"BULK_IMPORT","payload":{"user_id":2,"total_rows":100,"success":95,"failed":5,"file_name":"import.xlsx"}}
+     * ```
+     *
+     * BULK_EXPORT
+     * ```json
+     * {"log_type":"BULK_EXPORT","payload":{"user_id":2,"total_rows":200,"success":200,"failed":0,"file_name":"export.xlsx"}}
+     * ```
+     *
+     * SYSTEM_ERROR
+     * ```json
+     * {"log_type":"SYSTEM_ERROR","payload":{"message":"Route not defined","code":"RouteNotFoundException","context":{"url":"/products","method":"GET"}}}
+     * ```
+     *
+     * SECURITY_VIOLATION
+     * ```json
+     * {"log_type":"SECURITY_VIOLATION","payload":{"user_id":null,"reason":"Brute force attempt","meta":{"email":"admin@gmail.com","attempt":5}}}
+     * ```
+     *
+     * PERMISSION_CHANGE
+     * ```json
+     * {"log_type":"PERMISSION_CHANGE","payload":{"user_id":1,"target_user_id":2,"before":{"role":"user"},"after":{"role":"admin"}}}
+     * ```
+     *
+     * @group Logs
+     * @header X-API-Key string required API Key aplikasi.
+     * @bodyParam log_type string required Jenis log. Allowed: AUTH_LOGIN, AUTH_LOGOUT, AUTH_LOGIN_FAILED, ACCESS_ENDPOINT, DOWNLOAD_DOCUMENT, SEND_EXTERNAL, DATA_CREATE, DATA_UPDATE, DATA_DELETE, STATUS_CHANGE, BULK_IMPORT, BULK_EXPORT, SYSTEM_ERROR, SECURITY_VIOLATION, PERMISSION_CHANGE.
+     * @bodyParam payload object required Data log sesuai log_type.
+     * @bodyParam payload.user_id integer ID user. Required untuk: ACCESS_ENDPOINT, DOWNLOAD_DOCUMENT, SEND_EXTERNAL, DATA_CREATE, DATA_UPDATE, DATA_DELETE, STATUS_CHANGE, BULK_IMPORT, BULK_EXPORT, PERMISSION_CHANGE. Nullable untuk AUTH_* dan SECURITY_VIOLATION.
+     * @bodyParam payload.email string Email user. Required untuk: AUTH_LOGIN, AUTH_LOGOUT, AUTH_LOGIN_FAILED.
+     * @bodyParam payload.ip string IP address. Optional untuk AUTH_* dan SECURITY_VIOLATION.
+     * @bodyParam payload.device string Informasi device. Optional untuk AUTH_*.
+     * @bodyParam payload.endpoint string Endpoint yang diakses. Required untuk: ACCESS_ENDPOINT.
+     * @bodyParam payload.method string HTTP method. Required untuk: ACCESS_ENDPOINT. Allowed: GET, POST, PUT, PATCH, DELETE.
+     * @bodyParam payload.status integer HTTP status code. Required untuk: ACCESS_ENDPOINT.
+     * @bodyParam payload.document_id string ID dokumen. Required untuk: DOWNLOAD_DOCUMENT.
+     * @bodyParam payload.document_name string Nama dokumen. Optional untuk: DOWNLOAD_DOCUMENT.
+     * @bodyParam payload.channel string Channel. Required untuk: SEND_EXTERNAL. Allowed: WA, EMAIL, API.
+     * @bodyParam payload.to string Tujuan pengiriman. Required untuk: SEND_EXTERNAL. Juga digunakan sebagai status akhir untuk STATUS_CHANGE.
+     * @bodyParam payload.message string Pesan. Required untuk: SYSTEM_ERROR. Optional untuk: SEND_EXTERNAL.
+     * @bodyParam payload.meta object Metadata tambahan. Optional untuk: SEND_EXTERNAL, SECURITY_VIOLATION.
+     * @bodyParam payload.data object Data yang dibuat. Required untuk: DATA_CREATE.
+     * @bodyParam payload.before object Data sebelum perubahan. Required untuk: DATA_UPDATE, PERMISSION_CHANGE.
+     * @bodyParam payload.after object Data sesudah perubahan. Required untuk: DATA_UPDATE, PERMISSION_CHANGE.
+     * @bodyParam payload.id string ID record. Required untuk: DATA_DELETE, STATUS_CHANGE.
+     * @bodyParam payload.reason string Alasan. Required untuk: SECURITY_VIOLATION. Optional untuk: DATA_DELETE.
+     * @bodyParam payload.from string Status awal. Required untuk: STATUS_CHANGE.
+     * @bodyParam payload.total_rows integer Total baris. Required untuk: BULK_IMPORT, BULK_EXPORT.
+     * @bodyParam payload.success integer Total sukses. Required untuk: BULK_IMPORT, BULK_EXPORT.
+     * @bodyParam payload.failed integer Total gagal. Required untuk: BULK_IMPORT, BULK_EXPORT.
+     * @bodyParam payload.file_name string Nama file. Optional untuk: BULK_IMPORT, BULK_EXPORT.
+     * @bodyParam payload.code string Kode error. Optional untuk: SYSTEM_ERROR.
+     * @bodyParam payload.trace_id string Trace ID. Optional untuk: SYSTEM_ERROR.
+     * @bodyParam payload.context object Konteks tambahan. Optional untuk: SYSTEM_ERROR.
+     * @bodyParam payload.target_user_id integer Target user ID. Required untuk: PERMISSION_CHANGE.
+     * @response 202 {"success":true,"message":"Log received and queued for processing","queued_at":"2024-01-15 10:30:45"}
+     * @response 401 {"success":false,"message":"Invalid application context"}
+     * @response 422 {"success":false,"message":"Validation failed","errors":{"log_type":["The log_type field is required."]}}
+     */
     public function store(Request $request)
     {
         $application = $request->input('application');

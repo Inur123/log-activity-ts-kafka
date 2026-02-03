@@ -1,0 +1,120 @@
+name: Endpoints
+description: ''
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/user
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      X-API-Key: '{YOUR_API_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - X-API-Key
+      - 6g43cv8PD1aE5beadkZfhV6
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/v1/logs
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      X-API-Key: '{YOUR_API_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: |
+          <!doctype html>
+          <html lang="id">
+          <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Error 404</title>
+          </head>
+
+          <body
+              style="
+                  min-height:100vh;
+                  display:flex;
+                  align-items:center;
+                  justify-content:center;
+                  font-family:system-ui, sans-serif;
+                  background:#0f172a;
+                  color:#e5e7eb;
+              "
+          >
+              <div style="text-align:center; max-width:480px">
+                  <div style="font-size:14px; opacity:.7">ERROR</div>
+
+                  <div style="font-size:56px; font-weight:700; margin:8px 0">
+                      404
+                  </div>
+              </div>
+          </body>
+          </html>
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          access-control-allow-origin: '*'
+          set-cookie: 'XSRF-TOKEN=eyJpdiI6Im1GbVNROUdndCtmYWxqWExEemhEeVE9PSIsInZhbHVlIjoiWDlIc2M4SHNCZ0ZOR1lUR3RJazhnb3ZXY2EyZ3kyWGdsbHduT1RwR0UyYVFrdmluSHJsUFhva3J5aXNOLzQ2aTcxb3ZkWTVXVEk2a0R2d3VCVEEzREh6NnF2NUF5TWdpL0U0Si9DMEZrd2NLNUpyeldwci81eVFtR0dxRGh0Nm4iLCJtYWMiOiJhNDIxMzk4NTA5NWM5OTBlZmEzZWViYTVjNjA5MTdkNmY2MjA2MGZkZmE0YmNjNmYyYmE2ZDhiZjIwZmZkN2I5IiwidGFnIjoiIn0%3D; expires=Tue, 03 Feb 2026 04:25:44 GMT; Max-Age=7200; path=/; samesite=lax; log-activity-session=eyJpdiI6ImNoc2ZvaWhYVkVtcGxZNG4xZFByc0E9PSIsInZhbHVlIjoicDkxRC9ybnJjN2Z3dms3aFp5R0IycldGM1NFNkllMmJqVXlla2t6T3NSaHUxY0d0cGdORm9pN1lGQnZvNm1hd2wydFRJRTFqeHVrYWtUWk1ZVEwvQjdXa3htMTlyVXRuWXdyN2RMUzM5S2ZtUUJvSVVqQy9Xa2VZVk40WkZqdzgiLCJtYWMiOiIyMjcyZmE3NTA5NTYwYmJkNTViNTJmOGQ0ODc3YTgyNDg3M2I1NTNkNmQyYWJmZDdhODZmZjg1NzEyMThhYjZlIiwidGFnIjoiIn0%3D; expires=Tue, 03 Feb 2026 04:25:44 GMT; Max-Age=7200; path=/; httponly; samesite=lax'
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - X-API-Key
+      - 6g43cv8PD1aE5beadkZfhV6
+    controller: null
+    method: null
+    route: null
