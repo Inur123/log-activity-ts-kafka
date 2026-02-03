@@ -131,7 +131,7 @@
                 <div wire:loading>
                     <i class="fa-solid fa-spinner fa-spin"></i> Loading...
                 </div>
-                <div>Total: {{ $total }} • Page {{ $page }} / {{ $lastPage }}</div>
+                <div>Halaman {{ $pageIndex }}</div>
             </div>
         </div>
     </div>
