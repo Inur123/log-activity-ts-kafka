@@ -18,7 +18,7 @@ class LogViewer extends Component
     public ?string $logId = null;
     public ?UnifiedLog $selectedLog = null;
 
-    public string $q = '';
+
     public string $application_id = '';
     public string $log_type = '';
 
@@ -46,7 +46,7 @@ class LogViewer extends Component
         if ($name === 'validation_stage')  $this->validation_stage  = strtoupper((string) $value);
 
         if (in_array($name, [
-            'q',
+
             'application_id',
             'log_type',
             'validation_status',
@@ -77,7 +77,7 @@ class LogViewer extends Component
 
     public function resetFilters(): void
     {
-        $this->q = '';
+
         $this->application_id = '';
         $this->log_type = '';
         $this->validation_status = '';
@@ -180,16 +180,6 @@ class LogViewer extends Component
             );
         }
 
-
-        if ($this->q !== '') {
-            $q = trim($this->q);
-
-            $query->where(function ($sub) use ($q) {
-                $sub->orWhere('id', $q)
-                    ->orWhereRaw("CAST(payload AS CHAR) LIKE ?", ["%$q%"])
-                    ->orWhereHas('application', fn($app) => $app->where('name', 'like', "%$q%"));
-            });
-        }
 
         return $query;
     }
