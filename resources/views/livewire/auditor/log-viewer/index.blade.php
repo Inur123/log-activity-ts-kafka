@@ -297,22 +297,51 @@
                         </button>
 
                         <div class="hidden sm:flex items-center gap-1">
-                            @if ($page > 1)
-                                <button type="button" wire:click="prevPage"
+                            @php
+                                // Logic "Sliding Window" Pagination
+                                $window = 2; // jumlah page kiri/kanan dari current
+                                $start = max(1, $page - $window);
+                                $end = min($lastPage, $page + $window);
+                            @endphp
+
+                            {{-- First Page --}}
+                            @if ($start > 1)
+                                <button type="button" wire:click="gotoPage(1, {{ $lastPage }})"
                                     class="h-10 w-10 inline-flex items-center justify-center rounded-xl border bg-white hover:bg-slate-50 text-sm">
-                                    {{ $page - 1 }}
+                                    1
                                 </button>
+                                @if ($start > 2)
+                                    <span
+                                        class="h-10 w-10 inline-flex items-center justify-center text-slate-400">...</span>
+                                @endif
                             @endif
 
-                            <span
-                                class="h-10 w-10 inline-flex items-center justify-center rounded-xl bg-slate-900 text-white text-sm">
-                                {{ $page }}
-                            </span>
+                            {{-- Middle Pages --}}
+                            @foreach (range($start, $end) as $p)
+                                @if ($p == $page)
+                                    <span
+                                        class="h-10 w-10 inline-flex items-center justify-center rounded-xl bg-slate-900 text-white text-sm">
+                                        {{ $p }}
+                                    </span>
+                                @else
+                                    <button type="button"
+                                        wire:click="gotoPage({{ $p }}, {{ $lastPage }})"
+                                        class="h-10 w-10 inline-flex items-center justify-center rounded-xl border bg-white hover:bg-slate-50 text-sm">
+                                        {{ $p }}
+                                    </button>
+                                @endif
+                            @endforeach
 
-                            @if ($page < $lastPage)
-                                <button type="button" wire:click="nextPage"
+                            {{-- Last Page --}}
+                            @if ($end < $lastPage)
+                                @if ($end < $lastPage - 1)
+                                    <span
+                                        class="h-10 w-10 inline-flex items-center justify-center text-slate-400">...</span>
+                                @endif
+                                <button type="button"
+                                    wire:click="gotoPage({{ $lastPage }}, {{ $lastPage }})"
                                     class="h-10 w-10 inline-flex items-center justify-center rounded-xl border bg-white hover:bg-slate-50 text-sm">
-                                    {{ $page + 1 }}
+                                    {{ $lastPage }}
                                 </button>
                             @endif
                         </div>
