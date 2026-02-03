@@ -235,11 +235,15 @@ class LogViewer extends Component
 
         // 3. Ambil data lengkap berdasarkan ID tersebut (tetap menjaga urutan)
         if ($ids->isNotEmpty()) {
-            $placeholders = implode(',', array_fill(0, count($ids), '?'));
             $items = UnifiedLog::with('application')
                 ->whereIn('id', $ids)
-                ->orderByRaw("FIELD(id, $placeholders)", $ids->toArray())
                 ->get();
+
+            // Urutkan manual di Collection PHP agar sesuai urutan IDs
+            // Ini MENGHINDARI MySQL Sort Buffer Error karena payload besar
+            $items = $items->sortBy(function ($model) use ($ids) {
+                return array_search($model->id, $ids->toArray());
+            })->values();
         } else {
             $items = collect();
         }

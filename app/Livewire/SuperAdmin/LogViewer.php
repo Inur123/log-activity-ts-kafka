@@ -216,11 +216,14 @@ class LogViewer extends Component
 
         // 4. Ambil data lengkap
         if ($ids->isNotEmpty()) {
-            $placeholders = implode(',', array_fill(0, count($ids), '?'));
             $items = UnifiedLog::with('application')
                 ->whereIn('id', $ids)
-                ->orderByRaw("FIELD(id, $placeholders)", $ids->toArray())
                 ->get();
+
+            // Sort di PHP untuk menghindari MySQL sort buffer overflow
+            $items = $items->sortBy(function ($model) use ($ids) {
+                return array_search($model->id, $ids->toArray());
+            })->values();
         } else {
             $items = collect();
         }
