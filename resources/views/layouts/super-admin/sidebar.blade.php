@@ -65,6 +65,18 @@
             <span class="leading-none">Applications</span>
         </a>
 
+        <a href="{{ url('/docs') }}" target="_blank" rel="noopener noreferrer"
+            class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 text-slate-700"
+            x-on:click="sidebarOpen=false">
+
+            <span class="w-6 h-6 flex items-center justify-center">
+                <i class="fa-solid fa-book"></i>
+            </span>
+
+            <span class="leading-none">Dokumentasi API</span>
+            <i class="fa-solid fa-arrow-up-right-from-square ml-auto text-xs opacity-50"></i>
+        </a>
+
 
     </nav>
 
