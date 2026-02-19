@@ -30,15 +30,13 @@
         </div>
 
         <div class="mt-4" :class="open ? 'block' : 'hidden sm:block'">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
 
-
-
-                {{-- App --}}
-                <div class="lg:col-span-3">
+                {{-- Application --}}
+                <div class="sm:col-span-2 lg:col-span-3">
                     <label class="text-xs font-semibold text-slate-600">Application</label>
                     <select wire:model.live="application_id"
-                        class="w-full py-2.5 rounded-xl border border-slate-200 bg-white focus:border-gray-500 focus:ring-0 focus:outline-none">
+                        class="w-full h-[42px] px-3 rounded-xl border border-slate-200 bg-white focus:border-gray-500 focus:ring-0 focus:outline-none text-sm">
                         <option value="">All</option>
                         @foreach ($applications as $app)
                             <option value="{{ $app->id }}">{{ $app->name }}</option>
@@ -50,7 +48,7 @@
                 <div class="lg:col-span-2">
                     <label class="text-xs font-semibold text-slate-600">Log Type</label>
                     <select wire:model.live="log_type"
-                        class="w-full py-2.5 rounded-xl border border-slate-200 bg-white focus:border-gray-500 focus:ring-0 focus:outline-none">
+                        class="w-full h-[42px] px-3 rounded-xl border border-slate-200 bg-white focus:border-gray-500 focus:ring-0 focus:outline-none text-sm">
                         <option value="">All</option>
                         @foreach ($logTypeOptions as $t)
                             <option value="{{ $t }}">{{ $t }}</option>
@@ -58,53 +56,43 @@
                     </select>
                 </div>
 
-                {{--  Validation Status --}}
+                {{-- Validation Status --}}
                 <div class="lg:col-span-2">
                     <label class="text-xs font-semibold text-slate-600">Validation</label>
                     <select wire:model.live="validation_status"
-                        class="w-full py-2.5 rounded-xl border border-slate-200 bg-white focus:border-gray-500 focus:ring-0 focus:outline-none">
+                        class="w-full h-[42px] px-3 rounded-xl border border-slate-200 bg-white focus:border-gray-500 focus:ring-0 focus:outline-none text-sm">
                         <option value="">All</option>
                         <option value="PASSED">PASSED</option>
                         <option value="FAILED">FAILED</option>
                     </select>
                 </div>
 
-
                 {{-- From --}}
                 <div class="lg:col-span-2">
                     <label class="text-xs font-semibold text-slate-600">From</label>
                     <input type="date" wire:model.live="from"
-                        class="w-full py-2.5 rounded-xl border border-slate-200 focus:border-gray-500 focus:ring-0 focus:outline-none">
+                        class="w-full h-[42px] px-3 rounded-xl border border-slate-200 focus:border-gray-500 focus:ring-0 focus:outline-none text-sm">
                 </div>
 
                 {{-- To --}}
                 <div class="lg:col-span-2">
                     <label class="text-xs font-semibold text-slate-600">To</label>
                     <input type="date" wire:model.live="to"
-                        class="w-full py-2.5 rounded-xl border border-slate-200 focus:border-gray-500 focus:ring-0 focus:outline-none">
+                        class="w-full h-[42px] px-3 rounded-xl border border-slate-200 focus:border-gray-500 focus:ring-0 focus:outline-none text-sm">
                 </div>
 
-                {{-- Sort --}}
-                <div class="lg:col-span-2">
-                    <label class="text-xs font-semibold text-slate-600">Sort</label>
-                    <select wire:model.live="sort"
-                        class="w-full py-2.5 rounded-xl border border-slate-200 bg-white focus:border-gray-500 focus:ring-0 focus:outline-none">
-                        <option value="newest">Newest</option>
-                        <option value="oldest">Oldest</option>
-                    </select>
-                </div>
-
-                <div class="lg:col-span-2">
-                    <label class="text-xs font-semibold text-transparent select-none">Reset</label>
-                    <button type="button" wire:click="resetFilters"
-                        class="w-full py-2.5 rounded-xl bg-slate-900 text-white text-sm hover:bg-slate-800">
-                        Reset
+                {{-- Reset (X icon) --}}
+                <div class="lg:col-span-1">
+                    <label class="text-xs font-semibold text-transparent select-none block">X</label>
+                    <button type="button" wire:click="resetFilters" title="Reset Filter"
+                        class="w-full h-[42px] flex items-center justify-center rounded-xl border border-slate-900 bg-slate-900 text-white hover:bg-slate-700 hover:border-slate-700 transition">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
             </div>
 
-            <div class="mt-4 flex justify-between text-xs text-slate-500">
+            <div class="mt-3 flex justify-between text-xs text-slate-500">
                 <div wire:loading>
                     <i class="fa-solid fa-spinner fa-spin"></i> Loading...
                 </div>
@@ -247,17 +235,17 @@
                         </div>
 
                         <div class="col-span-5 px-6 py-4 min-w-0">
-                            <button type="button" wire:click="showDetail(@js($log->id))"
-                                class="w-full text-left text-xs font-mono text-slate-600 truncate hover:underline hover:text-slate-900 cursor-pointer">
+                            <a href="{{ route('auditor.logs.detail', $log->id) }}" wire:navigate
+                                class="w-full text-left text-xs font-mono text-slate-600 truncate hover:underline hover:text-slate-900 cursor-pointer block">
                                 {{ $payloadPreview }}
-                            </button>
+                            </a>
                         </div>
 
                         <div class="col-span-2 px-6 py-4">
-                            <button type="button" wire:click="showDetail(@js($log->id))"
-                                class="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800 cursor-pointer">
+                            <a href="{{ route('auditor.logs.detail', $log->id) }}" wire:navigate
+                                class="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800 cursor-pointer inline-flex items-center">
                                 Detail
-                            </button>
+                            </a>
                         </div>
                     </div>
                 @empty

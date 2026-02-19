@@ -99,7 +99,7 @@
                                 </div>
                             </div>
 
-                            <a href="{{ route('auditor.logs') }}" wire:navigate
+                            <a href="{{ route('auditor.logs.detail', $log->id) }}" wire:navigate
                                 class="shrink-0 inline-flex items-center justify-center h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm">
                                 Detail
                             </a>
@@ -118,70 +118,82 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // load Chart.js kalau belum ada (biar aman di wire:navigate)
-  async function ensureChartJs() {
-    if (window.Chart) return;
+    // load Chart.js kalau belum ada (biar aman di wire:navigate)
+    async function ensureChartJs() {
+        if (window.Chart) return;
 
-    if (!window.__chartJsLoading) {
-      window.__chartJsLoading = new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-      });
+        if (!window.__chartJsLoading) {
+            window.__chartJsLoading = new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+                s.onload = resolve;
+                s.onerror = reject;
+                document.head.appendChild(s);
+            });
+        }
+
+        await window.__chartJsLoading;
     }
 
-    await window.__chartJsLoading;
-  }
+    async function initAuditorLogsChart() {
+        const el = document.getElementById('logsChart');
+        if (!el) return;
 
-  async function initAuditorLogsChart() {
-    const el = document.getElementById('logsChart');
-    if (!el) return;
+        await ensureChartJs(); // pastikan Chart ada sebelum dipakai
 
-    await ensureChartJs(); // pastikan Chart ada sebelum dipakai
+        // destroy chart auditor sebelumnya (pakai key unik)
+        if (window.__auditorLogsChart) {
+            window.__auditorLogsChart.destroy();
+            window.__auditorLogsChart = null;
+        }
 
-    // destroy chart auditor sebelumnya (pakai key unik)
-    if (window.__auditorLogsChart) {
-      window.__auditorLogsChart.destroy();
-      window.__auditorLogsChart = null;
+        let labels = [],
+            values = [];
+        try {
+            labels = JSON.parse(el.dataset.labels || "[]");
+            values = JSON.parse(el.dataset.values || "[]");
+        } catch (e) {}
+
+        if (!labels.length) return;
+
+        window.__auditorLogsChart = new Chart(el, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Logs',
+                    data: values,
+                    tension: 0.35
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
     }
 
-    let labels = [], values = [];
-    try {
-      labels = JSON.parse(el.dataset.labels || "[]");
-      values = JSON.parse(el.dataset.values || "[]");
-    } catch (e) {}
+    // first load
+    document.addEventListener('DOMContentLoaded', initAuditorLogsChart);
 
-    if (!labels.length) return;
+    // tiap selesai wire:navigate
+    document.addEventListener('livewire:navigated', initAuditorLogsChart);
 
-    window.__auditorLogsChart = new Chart(el, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{ label: 'Logs', data: values, tension: 0.35 }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } }
-      }
-    });
-  }
-
-  // first load
-  document.addEventListener('DOMContentLoaded', initAuditorLogsChart);
-
-  // tiap selesai wire:navigate
-  document.addEventListener('livewire:navigated', initAuditorLogsChart);
-
-  // observer: bikin sekali saja (anti redeclare)
-  if (!window.__auditorLogsChartObserver) {
-    window.__auditorLogsChartObserver = new MutationObserver(() => initAuditorLogsChart());
-    window.__auditorLogsChartObserver.observe(document.documentElement, {
-      childList: true,
-      subtree: true
-    });
-  }
+    // observer: bikin sekali saja (anti redeclare)
+    if (!window.__auditorLogsChartObserver) {
+        window.__auditorLogsChartObserver = new MutationObserver(() => initAuditorLogsChart());
+        window.__auditorLogsChartObserver.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+    }
 </script>
-

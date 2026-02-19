@@ -26,16 +26,20 @@ Route::middleware(['auth', 'role:super_admin'])
     ->prefix('super-admin')
     ->name('super_admin.')
     ->group(function () {
-    Route::get('/dashboard', SuperAdminDashboard::class)->name('dashboard');
-    Route::get('/logs', SuperAdminLogViewer::class)->name('logs');
-    Route::get('/applications', SuperAdminApplication::class)->name('applications');
+        Route::get('/dashboard', SuperAdminDashboard::class)->name('dashboard');
+        Route::get('/logs', SuperAdminLogViewer::class)->name('logs');
+        Route::get('/logs/{logId}', SuperAdminLogViewer::class)->name('logs.detail');
+        Route::get('/applications', SuperAdminApplication::class)->name('applications');
+        Route::get('/applications/{applicationId}', SuperAdminApplication::class)->name('applications.detail');
+        Route::get('/applications/{applicationId}/edit', SuperAdminApplication::class)->name('applications.edit');
     });
 Route::middleware(['auth', 'role:auditor'])
     ->prefix('auditor')
     ->name('auditor.')
     ->group(function () {
-    Route::get('/dashboard', AuditorDashboard::class)->name('dashboard');
-    Route::get('/logs', AuditorLogViewer::class)->name('logs');
+        Route::get('/dashboard', AuditorDashboard::class)->name('dashboard');
+        Route::get('/logs', AuditorLogViewer::class)->name('logs');
+        Route::get('/logs/{logId}', AuditorLogViewer::class)->name('logs.detail');
     });
 
 Route::get('/api/v1/logs', function () {

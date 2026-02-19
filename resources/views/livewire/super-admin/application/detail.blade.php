@@ -8,11 +8,11 @@
             <p class="text-sm text-slate-600">Detail informasi aplikasi.</p>
         </div>
 
-        <button type="button" wire:click="back"
+        <a href="{{ route('super_admin.applications') }}" wire:navigate
             class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer">
             <i class="fa-solid fa-arrow-left"></i>
             Back
-        </button>
+        </a>
     </div>
 
     <div class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
@@ -63,8 +63,30 @@
             <div class="sm:col-span-2 p-3 rounded-lg bg-slate-50 border border-slate-200" x-data="{
                 show: false,
                 copied: false,
-                copy(text) {
-                    navigator.clipboard.writeText(text);
+                async copy(text) {
+                    try {
+                        if (navigator.clipboard) {
+                            await navigator.clipboard.writeText(text);
+                        } else {
+                            throw new Error('Clipboard API unavailable');
+                        }
+                    } catch (err) {
+                        // Fallback: Create invisible textarea
+                        let textArea = document.createElement('textarea');
+                        textArea.value = text;
+                        textArea.style.position = 'fixed';
+                        textArea.style.left = '-999999px';
+                        textArea.style.top = '-999999px';
+                        document.body.appendChild(textArea);
+                        textArea.focus();
+                        textArea.select();
+                        try {
+                            document.execCommand('copy');
+                        } catch (copyErr) {
+                            console.error('Fallback copy failed', copyErr);
+                        }
+                        textArea.remove();
+                    }
                     this.copied = true;
                     setTimeout(() => this.copied = false, 1500);
                 }

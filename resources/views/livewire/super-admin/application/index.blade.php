@@ -147,15 +147,15 @@
                         </div>
 
                         <div class="col-span-2 px-6 py-4 flex justify-end gap-2">
-                            <button type="button" wire:click="detail(@js($app->id))"
-                                class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm hover:bg-slate-50 cursor-pointer">
+                            <a href="{{ route('super_admin.applications.detail', $app->id) }}" wire:navigate
+                                class="px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm hover:bg-slate-50 cursor-pointer inline-flex items-center">
                                 Detail
-                            </button>
+                            </a>
 
-                            <button type="button" wire:click="edit(@js($app->id))"
-                                class="px-3 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800 cursor-pointer">
+                            <a href="{{ route('super_admin.applications.edit', $app->id) }}" wire:navigate
+                                class="px-3 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800 cursor-pointer inline-flex items-center">
                                 Edit
-                            </button>
+                            </a>
 
                             <button type="button"
                                 @click="$dispatch('confirm-delete', { id: @js($app->id), name: @js($app->name) })"
@@ -248,7 +248,7 @@
             this.id = p.id;
             this.name = p.name || '';
             this.open = true;
-
+    
             // auto focus tombol konfirmasi (UX umum)
             this.$nextTick(() => this.$refs.confirmBtn?.focus());
         },
@@ -261,14 +261,14 @@
         async confirm() {
             if (!this.id || this.loading) return;
             this.loading = true;
-
+    
             const idToDelete = this.id;
-
+    
             // hide cepat
             this.open = false;
             this.id = null;
             this.name = '';
-
+    
             try {
                 await $wire.call('delete', idToDelete);
             } finally {

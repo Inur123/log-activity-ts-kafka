@@ -11,14 +11,15 @@
             <p class="text-sm text-slate-600 break-words">
                 {{ $log->application->name ?? '-' }} •
                 <span class="font-semibold">{{ $log->log_type }}</span> •
-               {{ optional($log->created_at)->translatedFormat('l, d F Y') }} | {{ optional($log->created_at)->format('H.i') }} WIB
+                {{ optional($log->created_at)->translatedFormat('l, d F Y') }} |
+                {{ optional($log->created_at)->format('H.i') }} WIB
             </p>
         </div>
 
-        <button type="button" wire:click="back"
+        <a href="{{ route('auditor.logs') }}" wire:navigate
             class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer">
             <i class="fa-solid fa-arrow-left"></i> Back
-        </button>
+        </a>
     </div>
 
 

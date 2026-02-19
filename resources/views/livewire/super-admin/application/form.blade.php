@@ -40,8 +40,29 @@
                 <div class="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2" x-data="{
                     show: false,
                     copied: false,
-                    copy(text) {
-                        navigator.clipboard.writeText(text);
+                    async copy(text) {
+                        try {
+                            if (navigator.clipboard) {
+                                await navigator.clipboard.writeText(text);
+                            } else {
+                                throw new Error('Clipboard API unavailable');
+                            }
+                        } catch (err) {
+                            let textArea = document.createElement('textarea');
+                            textArea.value = text;
+                            textArea.style.position = 'fixed';
+                            textArea.style.left = '-999999px';
+                            textArea.style.top = '-999999px';
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+                            try {
+                                document.execCommand('copy');
+                            } catch (copyErr) {
+                                console.error('Fallback copy failed', copyErr);
+                            }
+                            textArea.remove();
+                        }
                         this.copied = true;
                         setTimeout(() => this.copied = false, 1200);
                     }
@@ -157,10 +178,10 @@
 
             {{-- ACTIONS --}}
             <div class="mt-6 flex items-center justify-end gap-3">
-                <button type="button" wire:click="back"
-                    class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer">
+                <a href="{{ route('super_admin.applications') }}" wire:navigate
+                    class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer inline-flex items-center">
                     Cancel
-                </button>
+                </a>
 
                 <button type="submit" wire:loading.attr="disabled" wire:target="save"
                     class="px-5 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed">

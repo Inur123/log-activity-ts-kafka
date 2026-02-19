@@ -41,7 +41,7 @@
 
         <a href="{{ route('super_admin.logs') }}" wire:navigate
             class="flex items-center gap-3 px-3 py-2 rounded-xl
-   {{ request()->routeIs('super_admin.logs') ? 'bg-slate-900 text-white' : 'hover:bg-slate-100 text-slate-700' }}"
+   {{ request()->routeIs('super_admin.logs', 'super_admin.logs.detail') ? 'bg-slate-900 text-white' : 'hover:bg-slate-100 text-slate-700' }}"
             x-on:click="sidebarOpen=false">
 
             <span class="w-6 h-6 flex items-center justify-center">
@@ -53,7 +53,7 @@
 
         <a href="{{ route('super_admin.applications') }}" wire:navigate
             class="flex items-center gap-3 px-3 py-2 rounded-xl
-   {{ request()->routeIs('super_admin.applications')
+   {{ request()->routeIs('super_admin.applications', 'super_admin.applications.detail')
        ? 'bg-slate-900 text-white'
        : 'hover:bg-slate-100 text-slate-700' }}"
             x-on:click="sidebarOpen=false">

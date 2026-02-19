@@ -15,6 +15,17 @@ class Application extends Component
 {
     public string $action = 'index'; // index | form | detail
 
+    public function mount(?string $applicationId = null): void
+    {
+        if ($applicationId) {
+            if (request()->routeIs('super_admin.applications.edit')) {
+                $this->edit($applicationId);
+            } else {
+                $this->detail($applicationId);
+            }
+        }
+    }
+
     public ?string $appId = null;
     public ?ApplicationModel $selected = null;
 
@@ -93,6 +104,11 @@ class Application extends Component
 
     public function back(): void
     {
+        if (request()->route('applicationId')) {
+            $this->redirect(route('super_admin.applications'), navigate: true);
+            return;
+        }
+
         $this->action = 'index';
         $this->resetForm();
         $this->dispatch('scroll-top');
@@ -113,7 +129,7 @@ class Application extends Component
             $this->selected->api_key = $this->pending_api_key;
         }
 
-       $this->dispatch('flash', type: 'warning', message: 'API Key baru dibuat (preview). Klik Save untuk menyimpan.');
+        $this->dispatch('flash', type: 'warning', message: 'API Key baru dibuat (preview). Klik Save untuk menyimpan.');
     }
 
     public function save(): void
@@ -121,20 +137,20 @@ class Application extends Component
         $slug = Str::slug($this->name);
 
         $this->validate(
-        [
-            'name'       => ['required', 'string', 'max:100'],
-            'domain'     => ['nullable', 'string', 'max:255'],
-            'form_stack' => ['required', 'in:laravel,codeigniter,django,other'],
-            'is_active'  => ['boolean'],
-        ],
-        [
-            'name.required'       => 'Name wajib diisi.',
-            'name.max'            => 'Name maksimal 100 karakter.',
-            'form_stack.required' => 'Stack wajib dipilih.',
-            'form_stack.in'       => 'Stack tidak valid.',
-            'domain.max'          => 'Domain maksimal 255 karakter.',
-        ]
-    );
+            [
+                'name'       => ['required', 'string', 'max:100'],
+                'domain'     => ['nullable', 'string', 'max:255'],
+                'form_stack' => ['required', 'in:laravel,codeigniter,django,other'],
+                'is_active'  => ['boolean'],
+            ],
+            [
+                'name.required'       => 'Name wajib diisi.',
+                'name.max'            => 'Name maksimal 100 karakter.',
+                'form_stack.required' => 'Stack wajib dipilih.',
+                'form_stack.in'       => 'Stack tidak valid.',
+                'domain.max'          => 'Domain maksimal 255 karakter.',
+            ]
+        );
 
         // slug unik
         $baseSlug = $slug;
@@ -184,12 +200,8 @@ class Application extends Component
             ]);
         }
 
-        $this->action = 'index';
-        $this->resetForm();
-        $this->dispatch('scroll-top');
-
-       $this->dispatch('flash', type: 'success', message: 'Application saved.');
-
+        // Selalu redirect ke index untuk membersihkan URL (menghapus ID / edit)
+        $this->redirect(route('super_admin.applications'), navigate: true);
     }
 
     public function delete(string $id): void

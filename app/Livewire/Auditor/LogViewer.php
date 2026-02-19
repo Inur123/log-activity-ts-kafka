@@ -45,6 +45,16 @@ class LogViewer extends Component
     public bool $verifying = false;
 
     /**
+     * Auto-open detail saat route parameter logId tersedia
+     */
+    public function mount(?string $logId = null): void
+    {
+        if ($logId) {
+            $this->showDetail($logId);
+        }
+    }
+
+    /**
      * Reset page saat filter berubah
      */
     public function updated($name, $value): void
@@ -166,6 +176,12 @@ class LogViewer extends Component
 
     public function back(): void
     {
+        // Jika dibuka via URL /logs/{logId}, redirect ke list bersih
+        if (request()->route('logId')) {
+            $this->redirect(route('auditor.logs'), navigate: true);
+            return;
+        }
+
         $this->action = 'index';
         $this->logId = null;
         $this->selectedLog = null;

@@ -98,7 +98,7 @@
                                 </div>
                             </div>
 
-                            <a href="{{ route('super_admin.logs') }}" wire:navigate
+                            <a href="{{ route('super_admin.logs.detail', $log->id) }}" wire:navigate
                                 class="shrink-0 inline-flex items-center justify-center h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm">
                                 Detail
                             </a>
@@ -117,56 +117,77 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  async function ensureChartJs() {
-    if (window.Chart) return;
+    async function ensureChartJs() {
+        if (window.Chart) return;
 
-    // supaya tidak double-load kalau dipanggil berkali-kali
-    if (!window.__chartJsLoading) {
-      window.__chartJsLoading = new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-      });
+        // supaya tidak double-load kalau dipanggil berkali-kali
+        if (!window.__chartJsLoading) {
+            window.__chartJsLoading = new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+                s.onload = resolve;
+                s.onerror = reject;
+                document.head.appendChild(s);
+            });
+        }
+
+        await window.__chartJsLoading;
     }
 
-    await window.__chartJsLoading;
-  }
+    async function initLogsChart() {
+        await ensureChartJs();
 
-  async function initLogsChart() {
-    await ensureChartJs();
+        const el = document.getElementById('logsChart');
+        if (!el) return;
 
-    const el = document.getElementById('logsChart');
-    if (!el) return;
+        if (window.__logsChart) {
+            window.__logsChart.destroy();
+            window.__logsChart = null;
+        }
 
-    if (window.__logsChart) {
-      window.__logsChart.destroy();
-      window.__logsChart = null;
+        let labels = [],
+            values = [];
+        try {
+            labels = JSON.parse(el.dataset.labels || "[]");
+            values = JSON.parse(el.dataset.values || "[]");
+        } catch (e) {}
+
+        if (!labels.length) return;
+
+        window.__logsChart = new Chart(el, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Logs',
+                    data: values,
+                    tension: 0.35
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
     }
 
-    let labels = [], values = [];
-    try {
-      labels = JSON.parse(el.dataset.labels || "[]");
-      values = JSON.parse(el.dataset.values || "[]");
-    } catch (e) {}
+    document.addEventListener('DOMContentLoaded', initLogsChart);
+    document.addEventListener('livewire:navigated', initLogsChart);
 
-    if (!labels.length) return;
-
-    window.__logsChart = new Chart(el, {
-      type: 'line',
-      data: { labels, datasets: [{ label: 'Logs', data: values, tension: 0.35 }] },
-      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', initLogsChart);
-  document.addEventListener('livewire:navigated', initLogsChart);
-
-  if (!window.__logsChartObserver) {
-    window.__logsChartObserver = new MutationObserver(() => initLogsChart());
-    window.__logsChartObserver.observe(document.documentElement, { childList: true, subtree: true });
-  }
+    if (!window.__logsChartObserver) {
+        window.__logsChartObserver = new MutationObserver(() => initLogsChart());
+        window.__logsChartObserver.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+    }
 </script>
-
-
