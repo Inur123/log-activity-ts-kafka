@@ -17,7 +17,6 @@
         </a>
     </div>
 
-
     {{-- Cards (4) --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @foreach ($cards as $c)
@@ -120,7 +119,6 @@
     async function ensureChartJs() {
         if (window.Chart) return;
 
-        // supaya tidak double-load kalau dipanggil berkali-kali
         if (!window.__chartJsLoading) {
             window.__chartJsLoading = new Promise((resolve, reject) => {
                 const s = document.createElement('script');

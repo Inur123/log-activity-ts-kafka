@@ -13,10 +13,10 @@ use Carbon\Carbon;
 #[Title('Super Admin Dashboard')]
 class Dashboard extends Component
 {
-    public array $cards = [];
-    public array $chartLabels = [];
-    public array $chartValues = [];
-    public $latestLogs = [];
+    public array  $cards       = [];
+    public array  $chartLabels = [];
+    public array  $chartValues = [];
+    public        $latestLogs  = [];
 
     public function mount(): void
     {
@@ -30,8 +30,8 @@ class Dashboard extends Component
         $errorLogs = UnifiedLog::query()
             ->where(function ($q) {
                 $q->where('log_type', 'like', '%error%')
-                  ->orWhereRaw("CAST(payload AS CHAR) LIKE ?", ['%"error"%'])
-                  ->orWhereRaw("CAST(payload AS CHAR) LIKE ?", ['%"exception"%']);
+                    ->orWhereRaw("CAST(payload AS CHAR) LIKE ?", ['%"error"%'])
+                    ->orWhereRaw("CAST(payload AS CHAR) LIKE ?", ['%"exception"%']);
             })
             ->count();
 
@@ -45,7 +45,7 @@ class Dashboard extends Component
         ];
 
         // Chart 7 hari terakhir (logs per day)
-        $days = collect(range(6, 0))->map(fn ($i) => Carbon::today()->subDays($i));
+        $days = collect(range(6, 0))->map(fn($i) => Carbon::today()->subDays($i));
 
         $counts = UnifiedLog::query()
             ->selectRaw('DATE(created_at) as d, COUNT(*) as c')
@@ -54,7 +54,7 @@ class Dashboard extends Component
             ->orderBy('d')
             ->pluck('c', 'd');
 
-        $this->chartLabels = $days->map(fn ($d) => $d->format('d M'))->toArray();
+        $this->chartLabels = $days->map(fn($d) => $d->format('d M'))->toArray();
         $this->chartValues = $days->map(function ($d) use ($counts) {
             $key = $d->format('Y-m-d');
             return (int) ($counts[$key] ?? 0);
@@ -71,10 +71,10 @@ class Dashboard extends Component
     public function render()
     {
         return view('livewire.super-admin.dashboard', [
-            'cards' => $this->cards,
+            'cards'       => $this->cards,
             'chartLabels' => $this->chartLabels,
             'chartValues' => $this->chartValues,
-            'latestLogs' => $this->latestLogs,
+            'latestLogs'  => $this->latestLogs,
         ]);
     }
 }

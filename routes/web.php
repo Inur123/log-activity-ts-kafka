@@ -8,6 +8,7 @@ use App\Livewire\Auth\Logout;
 use App\Livewire\SuperAdmin\Dashboard as SuperAdminDashboard;
 use App\Livewire\SuperAdmin\LogViewer as SuperAdminLogViewer;
 use App\Livewire\SuperAdmin\Application as SuperAdminApplication;
+use App\Livewire\SuperAdmin\KafkaMonitor as SuperAdminKafkaMonitor;
 
 
 use App\Livewire\Auditor\Dashboard as AuditorDashboard;
@@ -32,6 +33,7 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::get('/applications', SuperAdminApplication::class)->name('applications');
         Route::get('/applications/{applicationId}', SuperAdminApplication::class)->name('applications.detail');
         Route::get('/applications/{applicationId}/edit', SuperAdminApplication::class)->name('applications.edit');
+        Route::get('/kafka', SuperAdminKafkaMonitor::class)->name('kafka');
     });
 Route::middleware(['auth', 'role:auditor'])
     ->prefix('auditor')
