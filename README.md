@@ -184,6 +184,7 @@ Log masuk pengguna ke aplikasi.
   "log_type": "AUTH_LOGIN",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "email": "user@example.com",
     "ip": "192.168.1.1",
     "device": "Chrome on Windows"
@@ -195,6 +196,7 @@ Log masuk pengguna ke aplikasi.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID (nullable) |
+| `username` | string | Username (nullable) |
 | `email` | string | Email address |
 | `ip` | string | IP address (nullable) |
 | `device` | string | Device/browser info (nullable) |
@@ -209,6 +211,7 @@ Log keluar pengguna dari aplikasi.
   "log_type": "AUTH_LOGOUT",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "email": "user@example.com"
   }
 }
@@ -218,6 +221,7 @@ Log keluar pengguna dari aplikasi.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID (nullable) |
+| `username` | string | Username (nullable) |
 | `email` | string | Email address |
 
 ---
@@ -230,6 +234,7 @@ Log percobaan login yang gagal.
   "log_type": "AUTH_LOGIN_FAILED",
   "payload": {
     "user_id": null,
+    "username": "johndoe",
     "email": "user@example.com",
     "ip": "192.168.1.1",
     "device": "Safari on iOS"
@@ -241,6 +246,7 @@ Log percobaan login yang gagal.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID (nullable) |
+| `username` | string | Username (nullable) |
 | `email` | string | Email address |
 | `ip` | string | IP address (nullable) |
 | `device` | string | Device/browser info (nullable) |
@@ -257,6 +263,7 @@ Log akses ke endpoint API atau resource tertentu.
   "log_type": "ACCESS_ENDPOINT",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "endpoint": "/api/users/profile",
     "method": "GET",
     "ip": "192.168.1.1",
@@ -269,6 +276,7 @@ Log akses ke endpoint API atau resource tertentu.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID |
+| `username` | string | Username |
 | `endpoint` | string | API endpoint path |
 | `method` | string | HTTP method (GET, POST, PUT, PATCH, DELETE) |
 | `ip` | string | IP address (nullable) |
@@ -284,6 +292,7 @@ Log download dokumen atau file.
   "log_type": "DOWNLOAD_DOCUMENT",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "document_id": "doc-uuid",
     "document_name": "Report_2024.pdf",
     "ip": "192.168.1.1"
@@ -295,6 +304,7 @@ Log download dokumen atau file.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID |
+| `username` | string | Username |
 | `document_id` | string/integer | Document ID |
 | `document_name` | string | File name (nullable) |
 | `ip` | string | IP address (nullable) |
@@ -309,6 +319,7 @@ Log pengiriman data ke channel eksternal (WhatsApp, Email, API).
   "log_type": "SEND_EXTERNAL",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "channel": "WA",
     "to": "+62812345678",
     "message": "Your verification code is 123456",
@@ -324,6 +335,7 @@ Log pengiriman data ke channel eksternal (WhatsApp, Email, API).
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID |
+| `username` | string | Username |
 | `channel` | string | Channel (WA, EMAIL, API) |
 | `to` | string | Recipient identifier |
 | `message` | string | Message content (nullable) |
@@ -341,6 +353,7 @@ Log pembuatan data/record baru.
   "log_type": "DATA_CREATE",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "data": {
       "name": "John Doe",
       "email": "john@example.com",
@@ -354,6 +367,7 @@ Log pembuatan data/record baru.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID |
+| `username` | string | Username |
 | `data` | object | Created data |
 
 ---
@@ -366,6 +380,7 @@ Log perubahan data/record.
   "log_type": "DATA_UPDATE",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "before": {
       "name": "John Doe",
       "role": "user"
@@ -382,6 +397,7 @@ Log perubahan data/record.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID |
+| `username` | string | Username |
 | `before` | object | Data sebelum perubahan |
 | `after` | object | Data setelah perubahan |
 
@@ -395,6 +411,7 @@ Log penghapusan data/record.
   "log_type": "DATA_DELETE",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "id": "record-uuid",
     "reason": "User requested account deletion"
   }
@@ -405,6 +422,7 @@ Log penghapusan data/record.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID |
+| `username` | string | Username |
 | `id` | string/integer | Record ID yang dihapus |
 | `reason` | string | Alasan penghapusan (nullable) |
 
@@ -418,6 +436,7 @@ Log perubahan status (order, task, dll).
   "log_type": "STATUS_CHANGE",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "id": "order-uuid",
     "from": "pending",
     "to": "completed"
@@ -429,6 +448,7 @@ Log perubahan status (order, task, dll).
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID |
+| `username` | string | Username |
 | `id` | string/integer | Record ID |
 | `from` | string | Status awal |
 | `to` | string | Status akhir |
@@ -443,6 +463,7 @@ Log import data dalam jumlah besar.
   "log_type": "BULK_IMPORT",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "total_rows": 1000,
     "success": 980,
     "failed": 20,
@@ -455,6 +476,7 @@ Log import data dalam jumlah besar.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID |
+| `username` | string | Username |
 | `total_rows` | integer | Total baris yang diimport |
 | `success` | integer | Baris berhasil |
 | `failed` | integer | Baris gagal |
@@ -470,6 +492,7 @@ Log export data dalam jumlah besar.
   "log_type": "BULK_EXPORT",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "total_rows": 5000,
     "success": 5000,
     "failed": 0,
@@ -482,6 +505,7 @@ Log export data dalam jumlah besar.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID |
+| `username` | string | Username |
 | `total_rows` | integer | Total baris yang diekport |
 | `success` | integer | Baris berhasil |
 | `failed` | integer | Baris gagal |
@@ -527,6 +551,7 @@ Log validasi input yang gagal (biasanya di-trigger otomatis oleh sistem).
   "log_type": "VALIDATION_FAILED",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "errors": {
       "email": ["Email harus valid"],
       "age": ["Age minimal 18"]
@@ -544,6 +569,7 @@ Log validasi input yang gagal (biasanya di-trigger otomatis oleh sistem).
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID (nullable) |
+| `username` | string | Username (nullable) |
 | `errors` | object | Validation errors |
 | `ip` | string | IP address (nullable) |
 | `meta` | object | Additional metadata (nullable) |
@@ -560,6 +586,7 @@ Log pelanggaran keamanan.
   "log_type": "SECURITY_VIOLATION",
   "payload": {
     "user_id": 123,
+    "username": "johndoe",
     "ip": "192.168.1.1",
     "reason": "Multiple failed login attempts",
     "meta": {
@@ -574,6 +601,7 @@ Log pelanggaran keamanan.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID (nullable) |
+| `username` | string | Username (nullable) |
 | `ip` | string | IP address (nullable) |
 | `reason` | string | Deskripsi pelanggaran |
 | `meta` | object | Additional details (nullable) |
@@ -588,7 +616,9 @@ Log perubahan permission/role pengguna.
   "log_type": "PERMISSION_CHANGE",
   "payload": {
     "user_id": 456,
+    "username": "admin_user",
     "target_user_id": 123,
+    "target_username": "johndoe",
     "before": {
       "role": "user",
       "permissions": ["read"]
@@ -605,7 +635,9 @@ Log perubahan permission/role pengguna.
 | Field | Type | Description |
 |-------|------|-------------|
 | `user_id` | integer | User ID yang melakukan perubahan |
+| `username` | string | Username yang melakukan perubahan |
 | `target_user_id` | integer | User ID yang diubah |
+| `target_username` | string | Username yang diubah |
 | `before` | object | Permission sebelum perubahan |
 | `after` | object | Permission setelah perubahan |
 

@@ -25,7 +25,7 @@ class LogViewer extends Component
      * Gunakan string agar aman untuk ID numeric maupun UUID.
      * Default kosong = All
      */
-    public string $application_id = '';
+    public array $application_ids = [];
 
     public string $log_type = '';
 
@@ -65,7 +65,7 @@ class LogViewer extends Component
 
         if (in_array($name, [
 
-            'application_id',
+            'application_ids',
             'log_type',
             'validation_status',
             'validation_stage',
@@ -100,7 +100,7 @@ class LogViewer extends Component
     public function resetFilters(): void
     {
 
-        $this->application_id = '';
+        $this->application_ids = [];
         $this->log_type = '';
         $this->validation_status = '';
         $this->validation_stage = '';
@@ -118,10 +118,10 @@ class LogViewer extends Component
     {
         $this->chainStatus = null;
 
-        if ($this->application_id === '') {
+        if (empty($this->application_ids)) {
             $this->chainStatus = [
                 'valid' => false,
-                'message' => 'Pilih Application dulu untuk verifikasi chain.',
+                'message' => 'Pilih setidaknya satu Application untuk verifikasi chain.',
                 'errors' => [],
                 'total_checked' => 0,
             ];
@@ -132,7 +132,9 @@ class LogViewer extends Component
 
         try {
             $service = new HashChainService();
-            $this->chainStatus = $service->verifyChainByApplication($this->application_id);
+            // Verify first one selected
+            $appId = $this->application_ids[0];
+            $this->chainStatus = $service->verifyChainByApplication($appId);
         } catch (\Throwable $e) {
             $this->chainStatus = [
                 'valid' => false,
@@ -193,8 +195,8 @@ class LogViewer extends Component
         $query = UnifiedLog::query()->with('application');
 
         //  Filter Application
-        if ($this->application_id !== '') {
-            $query->where('application_id', $this->application_id);
+        if (!empty($this->application_ids)) {
+            $query->whereIn('application_id', $this->application_ids);
         }
 
         if ($this->log_type !== '') $query->where('log_type', $this->log_type);
@@ -288,7 +290,7 @@ class LogViewer extends Component
             'Status' => $pick(['status', 'code', 'http.status', 'response.status']),
             'Method' => $pick(['method', 'http.method', 'request.method']),
             'URL'    => $pick(['url', 'path', 'endpoint', 'http.url', 'request.url']),
-            'User'   => $pick(['user.email', 'user.name', 'user_id', 'auth.user_id']),
+            'User'   => $pick(['username', 'user.email', 'user.name', 'user_id', 'auth.user_id']),
             'Action' => $pick(['action', 'event', 'type', 'message']),
             'Error'  => $pick(['error.message', 'error', 'exception.message', 'exception']),
         ];
@@ -315,7 +317,7 @@ class LogViewer extends Component
 
                 return view('livewire.auditor.log-viewer.index', [
                     'logs' => $logs,
-                    'applications' => \Illuminate\Support\Facades\Cache::remember('apps_list', 600, fn() => Application::orderBy('name')->get()),
+                    'applications' => Application::orderBy('name')->get(),
                     'logTypeOptions' => \Illuminate\Support\Facades\Cache::remember('log_types_list', 600, fn() => UnifiedLog::query()
                         ->whereNotNull('log_type')
                         ->where('log_type', '!=', '')

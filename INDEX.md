@@ -212,6 +212,7 @@ curl -X POST http://localhost:8000/api/v1/logs \
     "log_type": "AUTH_LOGIN",
     "payload": {
       "user_id": 123,
+      "username": "testuser",
       "email": "test@example.com"
     }
   }'

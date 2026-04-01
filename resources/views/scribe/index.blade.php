@@ -442,35 +442,35 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <p>Contoh payload per log_type:</p>
 <p>DATA_CREATE</p>
-<pre><code class="language-json">{"log_type":"DATA_CREATE","payload":{"user_id":2,"data":{"resource":"product","id":10,"name":"Laptop"}}}</code></pre>
+<pre><code class="language-json">{"log_type":"DATA_CREATE","payload":{"user_id":2,"username":"admin","data":{"resource":"product","id":10,"name":"Laptop"}}}</code></pre>
 <p>DATA_UPDATE</p>
-<pre><code class="language-json">{"log_type":"DATA_UPDATE","payload":{"user_id":2,"before":{"id":10,"price":1000},"after":{"id":10,"price":1200}}}</code></pre>
+<pre><code class="language-json">{"log_type":"DATA_UPDATE","payload":{"user_id":2,"username":"admin","before":{"id":10,"price":1000},"after":{"id":10,"price":1200}}}</code></pre>
 <p>DATA_DELETE</p>
-<pre><code class="language-json">{"log_type":"DATA_DELETE","payload":{"user_id":2,"id":10,"reason":"Deleted by admin"}}</code></pre>
+<pre><code class="language-json">{"log_type":"DATA_DELETE","payload":{"user_id":2,"username":"admin","id":10,"reason":"Deleted by admin"}}</code></pre>
 <p>STATUS_CHANGE</p>
-<pre><code class="language-json">{"log_type":"STATUS_CHANGE","payload":{"user_id":2,"id":99,"from":"draft","to":"published"}}</code></pre>
+<pre><code class="language-json">{"log_type":"STATUS_CHANGE","payload":{"user_id":2,"username":"admin","id":99,"from":"draft","to":"published"}}</code></pre>
 <p>ACCESS_ENDPOINT</p>
-<pre><code class="language-json">{"log_type":"ACCESS_ENDPOINT","payload":{"user_id":2,"endpoint":"/products","method":"GET","status":200}}</code></pre>
+<pre><code class="language-json">{"log_type":"ACCESS_ENDPOINT","payload":{"user_id":2,"username":"admin","endpoint":"/products","method":"GET","status":200}}</code></pre>
 <p>DOWNLOAD_DOCUMENT</p>
-<pre><code class="language-json">{"log_type":"DOWNLOAD_DOCUMENT","payload":{"user_id":2,"document_id":"DOC-99","document_name":"report.pdf"}}</code></pre>
+<pre><code class="language-json">{"log_type":"DOWNLOAD_DOCUMENT","payload":{"user_id":2,"username":"admin","document_id":"DOC-99","document_name":"report.pdf"}}</code></pre>
 <p>SEND_EXTERNAL</p>
-<pre><code class="language-json">{"log_type":"SEND_EXTERNAL","payload":{"user_id":2,"channel":"EMAIL","to":"customer@gmail.com","message":"Invoice sent"}}</code></pre>
+<pre><code class="language-json">{"log_type":"SEND_EXTERNAL","payload":{"user_id":2,"username":"admin","channel":"EMAIL","to":"customer@gmail.com","message":"Invoice sent"}}</code></pre>
 <p>AUTH_LOGIN</p>
-<pre><code class="language-json">{"log_type":"AUTH_LOGIN","payload":{"user_id":2,"email":"admin@gmail.com","device":"Chrome Windows"}}</code></pre>
+<pre><code class="language-json">{"log_type":"AUTH_LOGIN","payload":{"user_id":2,"username":"admin","email":"admin@gmail.com","device":"Chrome Windows"}}</code></pre>
 <p>AUTH_LOGOUT</p>
-<pre><code class="language-json">{"log_type":"AUTH_LOGOUT","payload":{"user_id":2,"email":"admin@gmail.com"}}</code></pre>
+<pre><code class="language-json">{"log_type":"AUTH_LOGOUT","payload":{"user_id":2,"username":"admin","email":"admin@gmail.com"}}</code></pre>
 <p>AUTH_LOGIN_FAILED</p>
-<pre><code class="language-json">{"log_type":"AUTH_LOGIN_FAILED","payload":{"user_id":null,"email":"admin@gmail.com","device":"Firefox Linux"}}</code></pre>
+<pre><code class="language-json">{"log_type":"AUTH_LOGIN_FAILED","payload":{"user_id":null,"username":"admin","email":"admin@gmail.com","device":"Firefox Linux"}}</code></pre>
 <p>BULK_IMPORT</p>
-<pre><code class="language-json">{"log_type":"BULK_IMPORT","payload":{"user_id":2,"total_rows":100,"success":95,"failed":5,"file_name":"import.xlsx"}}</code></pre>
+<pre><code class="language-json">{"log_type":"BULK_IMPORT","payload":{"user_id":2,"username":"admin","total_rows":100,"success":95,"failed":5,"file_name":"import.xlsx"}}</code></pre>
 <p>BULK_EXPORT</p>
-<pre><code class="language-json">{"log_type":"BULK_EXPORT","payload":{"user_id":2,"total_rows":200,"success":200,"failed":0,"file_name":"export.xlsx"}}</code></pre>
+<pre><code class="language-json">{"log_type":"BULK_EXPORT","payload":{"user_id":2,"username":"admin","total_rows":200,"success":200,"failed":0,"file_name":"export.xlsx"}}</code></pre>
 <p>SYSTEM_ERROR</p>
 <pre><code class="language-json">{"log_type":"SYSTEM_ERROR","payload":{"message":"Route not defined","code":"RouteNotFoundException","context":{"url":"/products","method":"GET"}}}</code></pre>
 <p>SECURITY_VIOLATION</p>
-<pre><code class="language-json">{"log_type":"SECURITY_VIOLATION","payload":{"user_id":null,"reason":"Brute force attempt","meta":{"email":"admin@gmail.com","attempt":5}}}</code></pre>
+<pre><code class="language-json">{"log_type":"SECURITY_VIOLATION","payload":{"user_id":null,"username":"unknown","reason":"Brute force attempt","meta":{"email":"admin@gmail.com","attempt":5}}}</code></pre>
 <p>PERMISSION_CHANGE</p>
-<pre><code class="language-json">{"log_type":"PERMISSION_CHANGE","payload":{"user_id":1,"target_user_id":2,"before":{"role":"user"},"after":{"role":"admin"}}}</code></pre>
+<pre><code class="language-json">{"log_type":"PERMISSION_CHANGE","payload":{"user_id":1,"username":"admin","target_user_id":2,"target_username":"johndoe","before":{"role":"user"},"after":{"role":"admin"}}}</code></pre>
 
 <span id="example-requests-POSTapi-v1-logs">
 <blockquote>Example request:</blockquote>

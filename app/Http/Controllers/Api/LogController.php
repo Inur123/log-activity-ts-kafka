@@ -18,62 +18,62 @@ class LogController extends Controller
      *
      * DATA_CREATE
      * ```json
-     * {"log_type":"DATA_CREATE","payload":{"user_id":2,"data":{"resource":"product","id":10,"name":"Laptop"}}}
+     * {"log_type":"DATA_CREATE","payload":{"user_id":2,"username":"admin","data":{"resource":"product","id":10,"name":"Laptop"}}}
      * ```
      *
      * DATA_UPDATE
      * ```json
-     * {"log_type":"DATA_UPDATE","payload":{"user_id":2,"before":{"id":10,"price":1000},"after":{"id":10,"price":1200}}}
+     * {"log_type":"DATA_UPDATE","payload":{"user_id":2,"username":"admin","before":{"id":10,"price":1000},"after":{"id":10,"price":1200}}}
      * ```
      *
      * DATA_DELETE
      * ```json
-     * {"log_type":"DATA_DELETE","payload":{"user_id":2,"id":10,"reason":"Deleted by admin"}}
+     * {"log_type":"DATA_DELETE","payload":{"user_id":2,"username":"admin","id":10,"reason":"Deleted by admin"}}
      * ```
      *
      * STATUS_CHANGE
      * ```json
-     * {"log_type":"STATUS_CHANGE","payload":{"user_id":2,"id":99,"from":"draft","to":"published"}}
+     * {"log_type":"STATUS_CHANGE","payload":{"user_id":2,"username":"admin","id":99,"from":"draft","to":"published"}}
      * ```
      *
      * ACCESS_ENDPOINT
      * ```json
-     * {"log_type":"ACCESS_ENDPOINT","payload":{"user_id":2,"endpoint":"/products","method":"GET","status":200}}
+     * {"log_type":"ACCESS_ENDPOINT","payload":{"user_id":2,"username":"admin","endpoint":"/products","method":"GET","status":200}}
      * ```
      *
      * DOWNLOAD_DOCUMENT
      * ```json
-     * {"log_type":"DOWNLOAD_DOCUMENT","payload":{"user_id":2,"document_id":"DOC-99","document_name":"report.pdf"}}
+     * {"log_type":"DOWNLOAD_DOCUMENT","payload":{"user_id":2,"username":"admin","document_id":"DOC-99","document_name":"report.pdf"}}
      * ```
      *
      * SEND_EXTERNAL
      * ```json
-     * {"log_type":"SEND_EXTERNAL","payload":{"user_id":2,"channel":"EMAIL","to":"customer@gmail.com","message":"Invoice sent"}}
+     * {"log_type":"SEND_EXTERNAL","payload":{"user_id":2,"username":"admin","channel":"EMAIL","to":"customer@gmail.com","message":"Invoice sent"}}
      * ```
      *
      * AUTH_LOGIN
      * ```json
-     * {"log_type":"AUTH_LOGIN","payload":{"user_id":2,"email":"admin@gmail.com","device":"Chrome Windows"}}
+     * {"log_type":"AUTH_LOGIN","payload":{"user_id":2,"username":"admin","email":"admin@gmail.com","device":"Chrome Windows"}}
      * ```
      *
      * AUTH_LOGOUT
      * ```json
-     * {"log_type":"AUTH_LOGOUT","payload":{"user_id":2,"email":"admin@gmail.com"}}
+     * {"log_type":"AUTH_LOGOUT","payload":{"user_id":2,"username":"admin","email":"admin@gmail.com"}}
      * ```
      *
      * AUTH_LOGIN_FAILED
      * ```json
-     * {"log_type":"AUTH_LOGIN_FAILED","payload":{"user_id":null,"email":"admin@gmail.com","device":"Firefox Linux"}}
+     * {"log_type":"AUTH_LOGIN_FAILED","payload":{"user_id":null,"username":"admin","email":"admin@gmail.com","device":"Firefox Linux"}}
      * ```
      *
      * BULK_IMPORT
      * ```json
-     * {"log_type":"BULK_IMPORT","payload":{"user_id":2,"total_rows":100,"success":95,"failed":5,"file_name":"import.xlsx"}}
+     * {"log_type":"BULK_IMPORT","payload":{"user_id":2,"username":"admin","total_rows":100,"success":95,"failed":5,"file_name":"import.xlsx"}}
      * ```
      *
      * BULK_EXPORT
      * ```json
-     * {"log_type":"BULK_EXPORT","payload":{"user_id":2,"total_rows":200,"success":200,"failed":0,"file_name":"export.xlsx"}}
+     * {"log_type":"BULK_EXPORT","payload":{"user_id":2,"username":"admin","total_rows":200,"success":200,"failed":0,"file_name":"export.xlsx"}}
      * ```
      *
      * SYSTEM_ERROR
@@ -83,12 +83,28 @@ class LogController extends Controller
      *
      * SECURITY_VIOLATION
      * ```json
-     * {"log_type":"SECURITY_VIOLATION","payload":{"user_id":null,"reason":"Brute force attempt","meta":{"email":"admin@gmail.com","attempt":5}}}
+     * {"log_type":"SECURITY_VIOLATION","payload":{"user_id":null,"username":"unknown","reason":"Brute force attempt","meta":{"email":"admin@gmail.com","attempt":5}}}
      * ```
      *
      * PERMISSION_CHANGE
      * ```json
-     * {"log_type":"PERMISSION_CHANGE","payload":{"user_id":1,"target_user_id":2,"before":{"role":"user"},"after":{"role":"admin"}}}
+     * {
+     *   "log_type": "PERMISSION_CHANGE",
+     *   "payload": {
+     *     "user_id": 456,
+     *     "username": "admin_user",
+     *     "target_user_id": 123,
+     *     "target_username": "johndoe",
+     *     "before": {
+     *       "role": "user",
+     *       "permissions": ["read"]
+     *     },
+     *     "after": {
+     *       "role": "admin",
+     *       "permissions": ["read", "write", "delete"]
+     *     }
+     *   }
+     * }
      * ```
      *
      * @group Logs
@@ -96,6 +112,7 @@ class LogController extends Controller
      * @bodyParam log_type string required Jenis log. Allowed: AUTH_LOGIN, AUTH_LOGOUT, AUTH_LOGIN_FAILED, ACCESS_ENDPOINT, DOWNLOAD_DOCUMENT, SEND_EXTERNAL, DATA_CREATE, DATA_UPDATE, DATA_DELETE, STATUS_CHANGE, BULK_IMPORT, BULK_EXPORT, SYSTEM_ERROR, SECURITY_VIOLATION, PERMISSION_CHANGE.
      * @bodyParam payload object required Data log sesuai log_type.
      * @bodyParam payload.user_id integer ID user. Required untuk: ACCESS_ENDPOINT, DOWNLOAD_DOCUMENT, SEND_EXTERNAL, DATA_CREATE, DATA_UPDATE, DATA_DELETE, STATUS_CHANGE, BULK_IMPORT, BULK_EXPORT, PERMISSION_CHANGE. Nullable untuk AUTH_* dan SECURITY_VIOLATION.
+     * @bodyParam payload.username string Username user. Required untuk: ACCESS_ENDPOINT, DOWNLOAD_DOCUMENT, SEND_EXTERNAL, DATA_CREATE, DATA_UPDATE, DATA_DELETE, STATUS_CHANGE, BULK_IMPORT, BULK_EXPORT, PERMISSION_CHANGE. Nullable untuk AUTH_* dan SECURITY_VIOLATION.
      * @bodyParam payload.email string Email user. Required untuk: AUTH_LOGIN, AUTH_LOGOUT, AUTH_LOGIN_FAILED.
      * @bodyParam payload.ip string IP address. Optional untuk AUTH_* dan SECURITY_VIOLATION.
      * @bodyParam payload.device string Informasi device. Optional untuk AUTH_*.
@@ -355,14 +372,16 @@ class LogController extends Controller
             'AUTH_LOGIN',
             'AUTH_LOGOUT',
             'AUTH_LOGIN_FAILED' => [
-                'user_id' => 'nullable|integer',
-                'email'   => 'required|email',
-                'ip'      => 'nullable|string',
-                'device'  => 'nullable|string',
+                'user_id'  => 'nullable|integer',
+                'username' => 'nullable|string|max:255',
+                'email'    => 'required|email',
+                'ip'       => 'nullable|string',
+                'device'   => 'nullable|string',
             ],
 
             'ACCESS_ENDPOINT' => [
                 'user_id'   => 'required|integer',
+                'username'  => 'required|string|max:255',
                 'endpoint'  => 'required|string',
                 'method'    => 'required|string|in:GET,POST,PUT,PATCH,DELETE',
                 'ip'        => 'nullable|string',
@@ -371,6 +390,7 @@ class LogController extends Controller
 
             'DOWNLOAD_DOCUMENT' => [
                 'user_id'        => 'required|integer',
+                'username'       => 'required|string|max:255',
                 'document_id'    => 'required',
                 'document_name'  => 'nullable|string',
                 'ip'             => 'nullable|string',
@@ -378,6 +398,7 @@ class LogController extends Controller
 
             'SEND_EXTERNAL' => [
                 'user_id'  => 'required|integer',
+                'username' => 'required|string|max:255',
                 'channel'  => 'required|string|in:WA,EMAIL,API',
                 'to'       => 'required|string',
                 'message'  => 'nullable|string',
@@ -385,32 +406,37 @@ class LogController extends Controller
             ],
 
             'DATA_CREATE' => [
-                'user_id' => 'required|integer',
-                'data'    => 'required|array',
+                'user_id'  => 'required|integer',
+                'username' => 'required|string|max:255',
+                'data'     => 'required|array',
             ],
 
             'DATA_UPDATE' => [
-                'user_id' => 'required|integer',
-                'before'  => 'required|array',
-                'after'   => 'required|array',
+                'user_id'  => 'required|integer',
+                'username' => 'required|string|max:255',
+                'before'   => 'required|array',
+                'after'    => 'required|array',
             ],
 
             'DATA_DELETE' => [
-                'user_id' => 'required|integer',
-                'id'      => 'required',
-                'reason'  => 'nullable|string',
+                'user_id'  => 'required|integer',
+                'username' => 'required|string|max:255',
+                'id'       => 'required',
+                'reason'   => 'nullable|string',
             ],
 
             'STATUS_CHANGE' => [
-                'user_id' => 'required|integer',
-                'id'      => 'required',
-                'from'    => 'required|string',
-                'to'      => 'required|string',
+                'user_id'  => 'required|integer',
+                'username' => 'required|string|max:255',
+                'id'       => 'required',
+                'from'     => 'required|string',
+                'to'       => 'required|string',
             ],
 
             'BULK_IMPORT',
             'BULK_EXPORT' => [
                 'user_id'     => 'required|integer',
+                'username'    => 'required|string|max:255',
                 'total_rows'  => 'required|integer|min:1',
                 'success'     => 'required|integer|min:0',
                 'failed'      => 'required|integer|min:0',
@@ -425,17 +451,20 @@ class LogController extends Controller
             ],
 
             'SECURITY_VIOLATION' => [
-                'user_id' => 'nullable|integer',
-                'ip'      => 'nullable|string',
-                'reason'  => 'required|string',
-                'meta'    => 'nullable|array',
+                'user_id'  => 'nullable|integer',
+                'username' => 'nullable|string|max:255',
+                'ip'       => 'nullable|string',
+                'reason'   => 'required|string',
+                'meta'     => 'nullable|array',
             ],
 
             'PERMISSION_CHANGE' => [
-                'user_id'        => 'required|integer',
-                'target_user_id' => 'required|integer',
-                'before'         => 'required|array',
-                'after'          => 'required|array',
+                'user_id'         => 'required|integer',
+                'username'        => 'required|string|max:255',
+                'target_user_id'  => 'required|integer',
+                'target_username' => 'required|string|max:255',
+                'before'          => 'required|array',
+                'after'           => 'required|array',
             ],
 
             default => [],

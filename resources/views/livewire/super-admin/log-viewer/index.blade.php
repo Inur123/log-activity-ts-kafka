@@ -33,15 +33,84 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
 
                 {{-- Application --}}
-                <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="text-xs font-semibold text-slate-600">Application</label>
-                    <select wire:model.live="application_id"
-                        class="w-full h-[42px] px-3 rounded-xl border border-slate-200 bg-white focus:border-gray-500 focus:ring-0 focus:outline-none text-sm">
-                        <option value="">All</option>
-                        @foreach ($applications as $app)
-                            <option value="{{ $app->id }}">{{ $app->name }}</option>
-                        @endforeach
-                    </select>
+                <div class="sm:col-span-2 lg:col-span-3" 
+                    x-data="{ 
+                        open: false, 
+                        search: '',
+                        selected: @entangle('application_ids').live,
+                        showAll: false,
+                        apps: {{ $applications->toJson() }}
+                    }"
+                    x-on:click.away="open = false">
+                    
+                    <label class="text-xs font-semibold text-slate-600">Applications</label>
+                    <div class="relative mt-1">
+                        {{-- Trigger Button --}}
+                        <button type="button" x-on:click="open = !open"
+                            class="w-full h-[42px] px-3 flex items-center justify-between rounded-xl border border-slate-200 bg-white text-sm text-slate-700 hover:border-slate-400 transition-colors">
+                            <span class="truncate">
+                                <template x-if="selected.length === 0"><span>All Applications</span></template>
+                                <template x-if="selected.length > 0 && selected.length < apps.length">
+                                    <span x-text="selected.length + ' Selected'"></span>
+                                </template>
+                                <template x-if="selected.length === apps.length"><span>All Selected</span></template>
+                            </span>
+                            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''"></i>
+                        </button>
+
+                        {{-- Dropdown Panel --}}
+                        <div x-show="open" 
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            class="absolute z-50 mt-2 w-full min-w-[240px] rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden"
+                            style="display: none;">
+                            
+                            {{-- Search Input --}}
+                            <div class="p-2 border-b border-slate-100 bg-slate-50/50">
+                                <div class="relative">
+                                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                    <input type="text" x-model="search" placeholder="Search application..."
+                                        class="w-full h-9 pl-8 pr-3 rounded-lg border border-slate-200 bg-white text-xs focus:border-slate-400 focus:ring-0 focus:outline-none">
+                                </div>
+                            </div>
+
+                            {{-- Options List --}}
+                            <div class="max-h-60 overflow-y-auto p-1 scrollbar-thin">
+                                {{-- All Option --}}
+                                <label class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors group">
+                                    <input type="checkbox" 
+                                        x-on:change="if($el.checked) { selected = apps.map(a => a.id) } else { selected = [] }"
+                                        :checked="selected.length === apps.length"
+                                        class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                    <span class="text-sm text-slate-700 group-hover:text-slate-900 font-medium">Select All</span>
+                                </label>
+
+                                <div class="h-px bg-slate-100 my-1"></div>
+
+                                {{-- Individual Options --}}
+                                <template x-for="app in apps.filter(a => a.name.toLowerCase().includes(search.toLowerCase()))" :key="app.id">
+                                    <label class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors group">
+                                        <input type="checkbox" :value="app.id" x-model="selected"
+                                            class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                                        <span class="text-sm text-slate-700 group-hover:text-slate-900" x-text="app.name"></span>
+                                    </label>
+                                </template>
+
+                                <template x-if="apps.filter(a => a.name.toLowerCase().includes(search.toLowerCase())).length === 0">
+                                    <div class="px-3 py-4 text-center text-xs text-slate-400">No applications found.</div>
+                                </template>
+                            </div>
+
+                            {{-- Footer (Optional) --}}
+                            <div class="p-2 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+                                <button type="button" x-on:click="open = false" 
+                                    class="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wider hover:bg-slate-800">
+                                    Done
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Log Type --}}
@@ -125,7 +194,7 @@
                 {{-- Verify --}}
                 <button type="button" wire:click="verifySelectedApplicationChain"
                     class="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-900 text-white text-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    @disabled($application_id === '' || $verifying)>
+                    @disabled(empty($application_ids) || $verifying)>
                     @if ($verifying)
                         <i class="fa-solid fa-spinner fa-spin"></i>
                         <span>Verifying...</span>
@@ -146,10 +215,10 @@
         </div>
 
         {{-- Info --}}
-        @if ($application_id === '')
+        @if (empty($application_ids))
             <div class="mt-3 text-xs text-slate-500 flex items-center gap-2">
                 <i class="fa-solid fa-circle-info"></i>
-                <span>Pilih Application terlebih dahulu untuk melakukan verifikasi hash chain.</span>
+                <span>Pilih setidaknya satu Application terlebih dahulu untuk melakukan verifikasi hash chain.</span>
             </div>
         @endif
 

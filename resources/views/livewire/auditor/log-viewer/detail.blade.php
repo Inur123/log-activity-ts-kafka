@@ -281,7 +281,108 @@
                 };
             @endphp
 
-            @if (isset($payload['_raw']))
+            {{--  DATA_UPDATE Specialized View --}}
+            @if ($log->log_type === 'DATA_UPDATE' && isset($payload['before']) && isset($payload['after']))
+                @php
+                    $before = is_array($payload['before']) ? $payload['before'] : [];
+                    $after = is_array($payload['after']) ? $payload['after'] : [];
+                    $allKeys = array_unique(array_merge(array_keys($before), array_keys($after)));
+                    // Filter out timestamps
+                    $allKeys = array_filter($allKeys, function($k) {
+                        return !in_array($k, ['created_at', 'updated_at']);
+                    });
+                    $targetId = $payload['id'] ?? ($after['id'] ?? ($before['id'] ?? '-'));
+
+                    // Function to render a single transition card
+                    $renderTransition = function ($key, $valBefore, $valAfter) use ($renderScalar) {
+                        // Loose comparison for scalar values to avoid false positives (e.g. 85 vs "85")
+                        if (is_scalar($valBefore) && is_scalar($valAfter)) {
+                            $isChanged = (string) $valBefore !== (string) $valAfter;
+                        } else {
+                            $isChanged = json_encode($valBefore) !== json_encode($valAfter);
+                        }
+
+                        $renderV = function ($v) use ($renderScalar) {
+                            $s = $renderScalar($v);
+                            if ($s !== null) {
+                                return $s;
+                            }
+                            if (is_array($v)) {
+                                return count($v) . ' item(s)';
+                            }
+                            return '-';
+                        };
+
+                        $borderClass = $isChanged ? 'border-rose-400 ring-1 ring-rose-100' : 'border-slate-200';
+                        $bgClass = $isChanged ? 'bg-rose-50/20' : 'bg-white';
+
+                        echo '<div class="rounded-xl border ' . $borderClass . ' ' . $bgClass . ' overflow-hidden">';
+                        echo '<div class="px-3 py-2 space-y-2">';
+
+                        // Field Header
+                        echo '<div class="flex items-center justify-between border-b border-slate-100 pb-1 mb-1">';
+                        echo '<div class="font-bold text-slate-900 text-xs flex items-center gap-2">' .
+                            e($key);
+                        if ($isChanged) {
+                            echo '<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-bold uppercase tracking-wider"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Changed</span>';
+                        }
+                        echo '</div>';
+                        echo '</div>';
+
+                        // Two Column Comparison
+                        echo '<div class="grid grid-cols-2 gap-3">';
+                        // Before
+                        echo '<div>';
+                        echo '<div class="text-[9px] text-slate-400 uppercase font-bold tracking-widest">Before</div>';
+                        echo '<div class="text-xs ' .
+                            ($isChanged ? 'text-rose-600 line-through' : 'text-slate-600') .
+                            ' break-all">' .
+                            e($renderV($valBefore)) .
+                            '</div>';
+                        echo '</div>';
+                        // After
+                        echo '<div>';
+                        echo '<div class="text-[9px] text-slate-400 uppercase font-bold tracking-widest">After</div>';
+                        echo '<div class="text-xs ' .
+                            ($isChanged ? 'text-emerald-700 font-semibold' : 'text-slate-600') .
+                            ' break-all">' .
+                            ($isChanged ? '<i class="fa-solid fa-arrow-right mr-1 text-emerald-400"></i>' : '') .
+                            e($renderV($valAfter)) .
+                            '</div>';
+                        echo '</div>';
+                        echo '</div>';
+
+                        echo '</div>';
+                        echo '</div>';
+                    };
+                @endphp
+
+                <div class="space-y-4">
+                    {{-- 2. Combined Attributes --}}
+                    <div class="space-y-2">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Attribute Changes</div>
+                        <div class="space-y-2">
+                            @foreach ($allKeys as $key)
+                                @php $renderTransition($key, $before[$key] ?? null, $after[$key] ?? null); @endphp
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- 3. Others --}}
+                    @php
+                        $others = array_filter($payload, function ($k) {
+                            return !in_array($k, ['before', 'after', 'id']);
+                        }, ARRAY_FILTER_USE_KEY);
+                    @endphp
+
+                    @if (!empty($others))
+                        <div class="pt-4 border-t border-slate-200 mt-4 space-y-2">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Metadata / Other Context</div>
+                            @php $renderNode($others); @endphp
+                        </div>
+                    @endif
+                </div>
+            @elseif (isset($payload['_raw']))
                 <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
                     Payload bukan JSON valid, tampilkan sebagai teks:
                     <div class="mt-2 font-mono text-xs whitespace-pre-wrap break-all">{{ $payload['_raw'] }}</div>
