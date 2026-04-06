@@ -26,7 +26,7 @@
             </style>
 
     <script>
-        var tryItOutBaseUrl = "http://localhost";
+        var tryItOutBaseUrl = "{{ config('app.url') }}";
         var useCsrf = Boolean();
         var csrfUrl = "/sanctum/csrf-cookie";
     </script>
@@ -106,7 +106,7 @@
         <h1 id="introduction">Introduction</h1>
 <p>Dokumentasi resmi untuk Unified Logging API.</p>
 <aside>
-    <strong>Base URL</strong>: <code>http://localhost</code>
+    <strong>Base URL</strong>: <code>{{ config('app.url') }}</code>
 </aside>
 <pre><code>Dokumentasi ini menjelaskan cara mengirim log ke sistem Unified Logging API.
 
@@ -135,7 +135,7 @@
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://localhost/api/user" \
+    --get "{{ config('app.url') }}/api/user" \
     --header "X-API-Key: {YOUR_API_KEY}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
@@ -143,7 +143,7 @@
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://localhost/api/user"
+    "{{ config('app.url') }}/api/user"
 );
 
 const headers = {
@@ -276,7 +276,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://localhost/api/v1/logs" \
+    --get "{{ config('app.url') }}/api/v1/logs" \
     --header "X-API-Key: {YOUR_API_KEY}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
@@ -284,7 +284,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://localhost/api/v1/logs"
+    "{{ config('app.url') }}/api/v1/logs"
 );
 
 const headers = {
@@ -478,7 +478,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
-    "http://localhost/api/v1/logs" \
+    "{{ config('app.url') }}/api/v1/logs" \
     --header "X-API-Key: string required API Key aplikasi." \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
@@ -519,7 +519,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://localhost/api/v1/logs"
+    "{{ config('app.url') }}/api/v1/logs"
 );
 
 const headers = {
