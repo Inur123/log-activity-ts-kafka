@@ -29,21 +29,31 @@ class ProcessUnifiedLog implements ShouldQueue
 
     public function handle(): void
     {
-        DB::transaction(function () {
+        $hashService = new HashChainService();
+        $appId = (string) $this->data['application_id'];
 
-            $hashService = new HashChainService();
+        DB::beginTransaction();
 
-            $appId = (string) $this->data['application_id'];
+        try {
+            // ✅ Step 1: Atomic increment di tabel kecil (lock sangat singkat)
+            // Ini menggantikan lockForUpdate() pada tabel unified_logs yang besar
+            DB::table('log_sequences')->updateOrInsert(
+                ['application_id' => $appId],
+                ['last_seq' => DB::raw('last_seq + 1')]
+            );
 
-            // 🔐 LOCK row terakhir per application
-            $lastLog = UnifiedLog::where('application_id', $appId)
-                ->orderByDesc('seq')
-                ->lockForUpdate()
-                ->first();
+            $nextSeq = (int) DB::table('log_sequences')
+                ->where('application_id', $appId)
+                ->value('last_seq');
 
-            $nextSeq = $lastLog ? $lastLog->seq + 1 : 1;
-            $prevHash = $lastLog ? $lastLog->hash : str_repeat('0', 64);
+            // ✅ Step 2: Ambil prev_hash tanpa lock (read-only)
+            $prevLog = UnifiedLog::where('application_id', $appId)
+                ->where('seq', $nextSeq - 1)
+                ->first(['hash']);
 
+            $prevHash = $prevLog ? $prevLog->hash : str_repeat('0', 64);
+
+            // ✅ Step 3: Compute hash
             $payload = $this->data['payload'] ?? [];
             $hashService->normalizeArray($payload);
 
@@ -55,6 +65,7 @@ class ProcessUnifiedLog implements ShouldQueue
                 prevHash: $prevHash
             );
 
+            // ✅ Step 4: Insert log
             UnifiedLog::create([
                 'application_id' => $appId,
                 'seq' => $nextSeq,
@@ -65,7 +76,12 @@ class ProcessUnifiedLog implements ShouldQueue
                 'hash' => $hash,
                 'prev_hash' => $prevHash,
             ]);
-        });
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     public function failed(\Throwable $exception): void

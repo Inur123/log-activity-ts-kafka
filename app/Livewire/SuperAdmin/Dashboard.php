@@ -28,11 +28,7 @@ class Dashboard extends Component
             ->count();
 
         $errorLogs = UnifiedLog::query()
-            ->where(function ($q) {
-                $q->where('log_type', 'like', '%error%')
-                    ->orWhereRaw("CAST(payload AS CHAR) LIKE ?", ['%"error"%'])
-                    ->orWhereRaw("CAST(payload AS CHAR) LIKE ?", ['%"exception"%']);
-            })
+            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.validation.status')) = ?", ['FAILED'])
             ->count();
 
         $applications = Application::query()->count();
