@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin;
 
 use Livewire\Component;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
 use App\Models\UnifiedLog;
@@ -20,7 +21,40 @@ class Dashboard extends Component
 
     public function mount(): void
     {
-        // Cards (Super Admin: 4 cards termasuk Applications)
+        $this->loadDashboardData();
+    }
+
+    /**
+     * Listen event dari Reverb — dipanggil otomatis saat ada log baru.
+     */
+    #[On('echo:dashboard,.log.received')]
+    public function onLogReceived(): void
+    {
+        $this->loadDashboardData();
+
+        // Dispatch browser event untuk update chart JS
+        $this->dispatch('dashboard-updated', [
+            'chartLabels' => $this->chartLabels,
+            'chartValues' => $this->chartValues,
+        ]);
+    }
+
+    /**
+     * Manual refresh (tombol refresh).
+     */
+    public function refreshDashboard(): void
+    {
+        $this->loadDashboardData();
+
+        $this->dispatch('dashboard-updated', [
+            'chartLabels' => $this->chartLabels,
+            'chartValues' => $this->chartValues,
+        ]);
+    }
+
+    private function loadDashboardData(): void
+    {
+        // Cards
         $totalLogs = UnifiedLog::query()->count();
 
         $todayLogs = UnifiedLog::query()
@@ -40,7 +74,7 @@ class Dashboard extends Component
             ['label' => 'Applications', 'value' => $applications, 'icon' => 'fa-solid fa-cubes'],
         ];
 
-        // Chart 7 hari terakhir (logs per day)
+        // Chart 7 hari terakhir
         $days = collect(range(6, 0))->map(fn($i) => Carbon::today()->subDays($i));
 
         $counts = UnifiedLog::query()

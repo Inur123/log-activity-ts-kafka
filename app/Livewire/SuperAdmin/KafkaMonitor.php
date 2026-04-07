@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin;
 
 use Livewire\Component;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
 use App\Services\KafkaHealthService;
@@ -21,8 +22,9 @@ class KafkaMonitor extends Component
     }
 
     /**
-     * Dipanggil oleh wire:poll tiap 10 detik
+     * Dipanggil oleh wire:poll tiap 10 detik atau Reverb event
      */
+    #[On('echo:dashboard,.log.received')]
     public function refresh(): void
     {
         $this->status     = app(KafkaHealthService::class)->getStatus();

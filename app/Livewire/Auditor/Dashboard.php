@@ -3,6 +3,7 @@
 namespace App\Livewire\Auditor;
 
 use Livewire\Component;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
 use App\Models\UnifiedLog;
@@ -19,6 +20,38 @@ class Dashboard extends Component
 
     public function mount(): void
     {
+        $this->loadDashboardData();
+    }
+
+    /**
+     * Listen event dari Reverb — dipanggil otomatis saat ada log baru.
+     */
+    #[On('echo:dashboard,.log.received')]
+    public function onLogReceived(): void
+    {
+        $this->loadDashboardData();
+
+        $this->dispatch('dashboard-updated', [
+            'chartLabels' => $this->chartLabels,
+            'chartValues' => $this->chartValues,
+        ]);
+    }
+
+    /**
+     * Manual refresh.
+     */
+    public function refreshDashboard(): void
+    {
+        $this->loadDashboardData();
+
+        $this->dispatch('dashboard-updated', [
+            'chartLabels' => $this->chartLabels,
+            'chartValues' => $this->chartValues,
+        ]);
+    }
+
+    private function loadDashboardData(): void
+    {
         // Cards
         $totalLogs = UnifiedLog::query()->count();
 
@@ -31,24 +64,12 @@ class Dashboard extends Component
             ->count();
 
         $this->cards = [
-            [
-                'label' => 'Total Logs',
-                'value' => $totalLogs,
-                'icon'  => 'fa-solid fa-database',
-            ],
-            [
-                'label' => 'Logs Hari Ini',
-                'value' => $todayLogs,
-                'icon'  => 'fa-solid fa-calendar-day',
-            ],
-            [
-                'label' => 'Error Logs',
-                'value' => $errorLogs,
-                'icon'  => 'fa-solid fa-triangle-exclamation',
-            ],
+            ['label' => 'Total Logs', 'value' => $totalLogs, 'icon' => 'fa-solid fa-database'],
+            ['label' => 'Logs Hari Ini', 'value' => $todayLogs, 'icon' => 'fa-solid fa-calendar-day'],
+            ['label' => 'Error Logs', 'value' => $errorLogs, 'icon' => 'fa-solid fa-triangle-exclamation'],
         ];
 
-        // Chart 7 hari terakhir (logs per day)
+        // Chart 7 hari terakhir
         $days = collect(range(6, 0))->map(fn($i) => Carbon::today()->subDays($i));
 
         $counts = UnifiedLog::query()

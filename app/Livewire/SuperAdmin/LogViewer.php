@@ -7,6 +7,7 @@ use App\Models\UnifiedLog;
 use App\Services\HashChainService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 
 #[Layout('components.layouts.super-admin')]
@@ -44,6 +45,15 @@ class LogViewer extends Component
         if ($logId) {
             $this->showDetail($logId);
         }
+    }
+
+    /**
+     * Listen realtime event dari Reverb
+     */
+    #[On('echo:dashboard,.log.received')]
+    public function onLogReceived(): void
+    {
+        // Re-render component dengan data terbaru
     }
 
     /**

@@ -51,10 +51,11 @@
                     Updated: {{ now()->format('Y-m-d H:i') }}
                 </div>
             </div>
-            <div class="p-5">
-                <canvas id="logsChart" height="120" data-labels='@json($chartLabels)'
-                    data-values='@json($chartValues)'></canvas>
-
+            <div class="p-5" wire:ignore>
+                <div style="position:relative; height:300px;">
+                    <canvas id="logsChart" data-labels='@json($chartLabels)'
+                        data-values='@json($chartValues)'></canvas>
+                </div>
             </div>
         </div>
 
@@ -168,6 +169,7 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         display: false
@@ -187,6 +189,18 @@
 
     // tiap selesai wire:navigate
     document.addEventListener('livewire:navigated', initAuditorLogsChart);
+
+    // Listen for realtime chart updates from Reverb
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('dashboard-updated', (data) => {
+            const payload = data[0] || data;
+            if (window.__auditorLogsChart && payload.chartLabels && payload.chartValues) {
+                window.__auditorLogsChart.data.labels = payload.chartLabels;
+                window.__auditorLogsChart.data.datasets[0].data = payload.chartValues;
+                window.__auditorLogsChart.update('none');
+            }
+        });
+    });
 
     // observer: bikin sekali saja (anti redeclare)
     if (!window.__auditorLogsChartObserver) {

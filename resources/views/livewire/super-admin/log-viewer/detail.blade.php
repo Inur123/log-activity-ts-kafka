@@ -336,7 +336,7 @@
                         echo '<div>';
                         echo '<div class="text-[9px] text-slate-400 uppercase font-bold tracking-widest">Before</div>';
                         echo '<div class="text-xs ' .
-                            ($isChanged ? 'text-rose-600 line-through' : 'text-slate-600') .
+                            ($isChanged ? 'text-rose-600' : 'text-slate-600') .
                             ' break-all">' .
                             e($renderV($valBefore)) .
                             '</div>';

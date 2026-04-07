@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Events\NewLogReceived;
+use App\Models\Application;
 use App\Models\UnifiedLog;
 use App\Services\HashChainService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -9,6 +11,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -80,6 +83,21 @@ class ProcessUnifiedLog implements ShouldQueue
             ]);
 
             DB::commit();
+
+            // ✅ Step 5: Broadcast event (throttled — max 1x per 2 detik per app)
+            $throttleKey = 'broadcast:log:' . $appId;
+            if (!Cache::has($throttleKey)) {
+                Cache::put($throttleKey, true, 2); // TTL 2 detik
+
+                $appName = Application::find($appId)?->name ?? 'Unknown';
+                $totalLogs = UnifiedLog::count();
+
+                broadcast(new NewLogReceived(
+                    logCount: $totalLogs,
+                    logType: $this->data['log_type'],
+                    applicationName: $appName,
+                ));
+            }
         } catch (\Throwable $e) {
             DB::rollBack();
             throw $e;

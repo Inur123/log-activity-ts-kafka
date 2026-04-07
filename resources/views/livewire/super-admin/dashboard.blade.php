@@ -50,9 +50,11 @@
                     Updated: {{ now()->format('Y-m-d H:i') }}
                 </div>
             </div>
-            <div class="p-5">
-                <canvas id="logsChart" height="120" data-labels='@json($chartLabels)'
-                    data-values='@json($chartValues)'></canvas>
+            <div class="p-5" wire:ignore>
+                <div style="position:relative; height:300px;">
+                    <canvas id="logsChart" data-labels='@json($chartLabels)'
+                        data-values='@json($chartValues)'></canvas>
+                </div>
             </div>
         </div>
 
@@ -164,6 +166,7 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         display: false
@@ -180,6 +183,18 @@
 
     document.addEventListener('DOMContentLoaded', initLogsChart);
     document.addEventListener('livewire:navigated', initLogsChart);
+
+    // Listen for realtime chart updates from Reverb
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('dashboard-updated', (data) => {
+            const payload = data[0] || data;
+            if (window.__logsChart && payload.chartLabels && payload.chartValues) {
+                window.__logsChart.data.labels = payload.chartLabels;
+                window.__logsChart.data.datasets[0].data = payload.chartValues;
+                window.__logsChart.update('none'); // Update tanpa animasi untuk smooth
+            }
+        });
+    });
 
     if (!window.__logsChartObserver) {
         window.__logsChartObserver = new MutationObserver(() => initLogsChart());
