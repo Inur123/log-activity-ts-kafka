@@ -3,7 +3,7 @@
 Dokumentasi resmi untuk Unified Logging API.
 
 <aside>
-    <strong>Base URL</strong>: <code>http://localhost</code>
+    <strong>Base URL</strong>: <code>{{ config("app.url") }}</code>
 </aside>
 
     Dokumentasi ini menjelaskan cara mengirim log ke sistem Unified Logging API.

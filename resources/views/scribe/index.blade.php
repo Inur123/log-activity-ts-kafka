@@ -26,13 +26,13 @@
             </style>
 
     <script>
-        var tryItOutBaseUrl = "{{ config('app.url') }}";
+        var tryItOutBaseUrl = "{{ config("app.url") }}";
         var useCsrf = Boolean();
         var csrfUrl = "/sanctum/csrf-cookie";
     </script>
-    <script src="{{ asset("/vendor/scribe/js/tryitout-5.6.0.js") }}"></script>
+    <script src="{{ asset("/vendor/scribe/js/tryitout-5.9.0.js") }}"></script>
 
-    <script src="{{ asset("/vendor/scribe/js/theme-default-5.6.0.js") }}"></script>
+    <script src="{{ asset("/vendor/scribe/js/theme-default-5.9.0.js") }}"></script>
 
 </head>
 
@@ -96,7 +96,7 @@
     </ul>
 
     <ul class="toc-footer" id="last-updated">
-        <li>Last updated: February 3, 2026</li>
+        <li>Last updated: April 7, 2026</li>
     </ul>
 </div>
 
@@ -106,7 +106,7 @@
         <h1 id="introduction">Introduction</h1>
 <p>Dokumentasi resmi untuk Unified Logging API.</p>
 <aside>
-    <strong>Base URL</strong>: <code>{{ config('app.url') }}</code>
+    <strong>Base URL</strong>: <code>{{ config("app.url") }}</code>
 </aside>
 <pre><code>Dokumentasi ini menjelaskan cara mengirim log ke sistem Unified Logging API.
 
@@ -135,7 +135,7 @@
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "{{ config('app.url') }}/api/user" \
+    --get "{{ config("app.url") }}/api/user" \
     --header "X-API-Key: {YOUR_API_KEY}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
@@ -143,7 +143,7 @@
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "{{ config('app.url') }}/api/user"
+    "{{ config("app.url") }}/api/user"
 );
 
 const headers = {
@@ -151,6 +151,7 @@ const headers = {
     "Content-Type": "application/json",
     "Accept": "application/json",
 };
+
 
 fetch(url, {
     method: "GET",
@@ -276,7 +277,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "{{ config('app.url') }}/api/v1/logs" \
+    --get "{{ config("app.url") }}/api/v1/logs" \
     --header "X-API-Key: {YOUR_API_KEY}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
@@ -284,7 +285,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "{{ config('app.url') }}/api/v1/logs"
+    "{{ config("app.url") }}/api/v1/logs"
 );
 
 const headers = {
@@ -292,6 +293,7 @@ const headers = {
     "Content-Type": "application/json",
     "Accept": "application/json",
 };
+
 
 fetch(url, {
     method: "GET",
@@ -311,7 +313,7 @@ fetch(url, {
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
 access-control-allow-origin: *
-set-cookie: XSRF-TOKEN=eyJpdiI6IktlNnFDdjRCUXFEVjVIektXQkdobUE9PSIsInZhbHVlIjoiaHF5MGhsWERVMDgzVFNPM3NkNTk1eTFHbmJqcy96REo2NlBqMnVsTS9yMkxLaTZEZDVSN25IRCs4cmExd1Q5RjJHQjdtK2J4L25oSVR5QTduNXcxL1FrZXdBZ05RaDAvZEVUczk1b0laRk50OSsxWDNoVDdXVUdicExJeW9FVW4iLCJtYWMiOiIxZjMxY2NhMWVkMGYxNzE1OGM1NzBmOGYzN2UxN2IzODMxZGFkZTIyMWZjZDA1MzQwMjRhY2VmYTg1MTZkYzY2IiwidGFnIjoiIn0%3D; expires=Tue, 03 Feb 2026 06:46:02 GMT; Max-Age=7200; path=/; samesite=lax; log-activity-session=eyJpdiI6Ik9uOU96cmVzcHJzekZmNFRVNWpOc2c9PSIsInZhbHVlIjoiUnhxWHNQS2FvNjRMdlhHdHBJVFdRWjBpVG8zZStmMW1kNHNaYmdOY3NkRzRMRmZabjU1aGVGeVRMMUdTVmJWZkRGL3JjaG51d2tEaVZLWkJMOTdVUENxanBReUlSblJlL3JoeGtIczgweU9OaEEyUTQvMzNvZ01tRGVCOUZMSDkiLCJtYWMiOiI0OWM1YmE0MGM1ZTVmYjBkMmRhMDZlNmI4YTQxMGU4MzI4YWNkYjk1YTRiNzFjN2M2Mjg1NTQ1ZGJmY2ZlMGMyIiwidGFnIjoiIn0%3D; expires=Tue, 03 Feb 2026 06:46:02 GMT; Max-Age=7200; path=/; httponly; samesite=lax
+set-cookie: XSRF-TOKEN=eyJpdiI6Ikd5ZHcxbW5qNnhDdEVOR0lOOHZlakE9PSIsInZhbHVlIjoiM2dSUnFZa0Z0SVV4OU1kbytjL2FPNit3UkFWcGhZcHNja1Q5WGxVdGQ1WTkzeVA3UDhPaWJjYWdteTVaUmtaSEM0QXFxaXRIZUJvaC9BRWFucTRlUTVDajd6U3RLTjg5Ui9tOHdvalBpNFZOWnJvMkIyalhPVEZ2QUo2WHBVTkQiLCJtYWMiOiJkZjFlN2IyODdlNzllZjA3NzBjMDIxM2QxMjJiOTc4Y2QyMjYwZmRlZDIyNjhjZGM1ODA3NTIyOWY5ZDBjZDY2IiwidGFnIjoiIn0%3D; expires=Tue, 07 Apr 2026 02:55:09 GMT; Max-Age=7200; path=/; samesite=lax; log-activity-session=eyJpdiI6InEydmUyMHlPZXVDK3dxZ2pldExiMVE9PSIsInZhbHVlIjoiTW9UajcwZk1GTWJLOTU0ZndYbnlWSjl6Vk9KYm84NnJURXdXQ0ZZVlVNSktuUlgwOTl3anBHRVE3VFJVMkNtQnRpK1NhMENTd0FNMjI5SFRIaUhaWVg1SC9VWGZSaW13RmRaNzB6RVZWN05LcEo3eUMwZmNlVkhYUHFxRmlnSHUiLCJtYWMiOiJiZWVhNDY4NjBhZjFiZDY1NmNiNjBmOTExYjM5Mzc1ZGU3MDIzYmExZGRlOGRmMGY2YTg5NjMyZWRiZGIzODBhIiwidGFnIjoiIn0%3D; expires=Tue, 07 Apr 2026 02:55:09 GMT; Max-Age=7200; path=/; httponly; samesite=lax
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">&lt;!doctype html&gt;
@@ -470,7 +472,23 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <p>SECURITY_VIOLATION</p>
 <pre><code class="language-json">{"log_type":"SECURITY_VIOLATION","payload":{"user_id":null,"username":"unknown","reason":"Brute force attempt","meta":{"email":"admin@gmail.com","attempt":5}}}</code></pre>
 <p>PERMISSION_CHANGE</p>
-<pre><code class="language-json">{"log_type":"PERMISSION_CHANGE","payload":{"user_id":1,"username":"admin","target_user_id":2,"target_username":"johndoe","before":{"role":"user"},"after":{"role":"admin"}}}</code></pre>
+<pre><code class="language-json">{
+  "log_type": "PERMISSION_CHANGE",
+  "payload": {
+    "user_id": 456,
+    "username": "admin_user",
+    "target_user_id": 123,
+    "target_username": "johndoe",
+    "before": {
+      "role": "user",
+      "permissions": ["read"]
+    },
+    "after": {
+      "role": "admin",
+      "permissions": ["read", "write", "delete"]
+    }
+  }
+}</code></pre>
 
 <span id="example-requests-POSTapi-v1-logs">
 <blockquote>Example request:</blockquote>
@@ -478,7 +496,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request POST \
-    "{{ config('app.url') }}/api/v1/logs" \
+    "{{ config("app.url") }}/api/v1/logs" \
     --header "X-API-Key: string required API Key aplikasi." \
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
@@ -486,6 +504,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     \"log_type\": \"architecto\",
     \"payload\": {
         \"user_id\": 16,
+        \"username\": \"architecto\",
         \"email\": \"gbailey@example.net\",
         \"ip\": \"architecto\",
         \"device\": \"architecto\",
@@ -519,7 +538,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "{{ config('app.url') }}/api/v1/logs"
+    "{{ config("app.url") }}/api/v1/logs"
 );
 
 const headers = {
@@ -532,6 +551,7 @@ let body = {
     "log_type": "architecto",
     "payload": {
         "user_id": 16,
+        "username": "architecto",
         "email": "gbailey@example.net",
         "ip": "architecto",
         "device": "architecto",
@@ -724,6 +744,18 @@ You can check the Dev Tools console for debugging information.</code></pre>
                data-component="body">
     <br>
 <p>ID user. Required untuk: ACCESS_ENDPOINT, DOWNLOAD_DOCUMENT, SEND_EXTERNAL, DATA_CREATE, DATA_UPDATE, DATA_DELETE, STATUS_CHANGE, BULK_IMPORT, BULK_EXPORT, PERMISSION<em>CHANGE. Nullable untuk AUTH</em>* dan SECURITY_VIOLATION. Example: <code>16</code></p>
+                    </div>
+                                                                <div style="margin-left: 14px; clear: unset;">
+                        <b style="line-height: 2;"><code>username</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="payload.username"                data-endpoint="POSTapi-v1-logs"
+               value="architecto"
+               data-component="body">
+    <br>
+<p>Username user. Required untuk: ACCESS_ENDPOINT, DOWNLOAD_DOCUMENT, SEND_EXTERNAL, DATA_CREATE, DATA_UPDATE, DATA_DELETE, STATUS_CHANGE, BULK_IMPORT, BULK_EXPORT, PERMISSION<em>CHANGE. Nullable untuk AUTH</em>* dan SECURITY_VIOLATION. Example: <code>architecto</code></p>
                     </div>
                                                                 <div style="margin-left: 14px; clear: unset;">
                         <b style="line-height: 2;"><code>email</code></b>&nbsp;&nbsp;
