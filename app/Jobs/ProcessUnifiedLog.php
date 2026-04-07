@@ -35,15 +35,17 @@ class ProcessUnifiedLog implements ShouldQueue
         DB::beginTransaction();
 
         try {
-            // ✅ Step 1: Atomic increment di tabel kecil (lock sangat singkat)
-            // Ini menggantikan lockForUpdate() pada tabel unified_logs yang besar
-            DB::table('log_sequences')->updateOrInsert(
-                ['application_id' => $appId],
-                ['last_seq' => DB::raw('last_seq + 1')]
+            // ✅ Step 1: Atomic increment + read di tabel kecil (single query)
+            // INSERT jika belum ada, UPDATE jika sudah ada
+            DB::statement(
+                'INSERT INTO log_sequences (application_id, last_seq) VALUES (?, 1)
+                 ON DUPLICATE KEY UPDATE last_seq = last_seq + 1',
+                [$appId]
             );
 
             $nextSeq = (int) DB::table('log_sequences')
                 ->where('application_id', $appId)
+                ->lockForUpdate()
                 ->value('last_seq');
 
             // ✅ Step 2: Ambil prev_hash tanpa lock (read-only)
