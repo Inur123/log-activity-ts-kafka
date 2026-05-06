@@ -29,6 +29,22 @@
             </button>
         </div>
 
+        {{-- Search Input (Always Visible) --}}
+        <div class="mt-4 relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+            </div>
+            <input type="text" wire:model.live.debounce.500ms="search" 
+                placeholder="Cari berdasarkan Log Type, Nama Aplikasi, atau isi Payload..."
+                class="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-0 transition-all">
+            
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                <div wire:loading wire:target="search">
+                    <i class="fa-solid fa-spinner fa-spin text-slate-400 text-xs"></i>
+                </div>
+            </div>
+        </div>
+
         <div class="mt-4" :class="open ? 'block' : 'hidden sm:block'">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
 

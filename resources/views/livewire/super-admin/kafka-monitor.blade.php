@@ -111,7 +111,7 @@
                         @if (($status['lag'] ?? -1) === 0)
                             Semua terproses ✓
                         @elseif (($status['lag'] ?? -1) > 0)
-                            pesan belum diproses
+                            {{ number_format($status['lag']) }} pesan menunggu
                         @else
                             -
                         @endif
@@ -125,23 +125,40 @@
             </div>
         </div>
 
-        {{-- Broker Count --}}
-        <div class="rounded-2xl border border-slate-200 bg-white p-5">
+        {{-- Emergency Storage (TAMBAHAN) --}}
+        <div
+            class="rounded-2xl border p-5 {{ $emergencyCount > 0 ? 'border-red-200 bg-red-50' : 'border-slate-200 bg-white' }}">
             <div class="flex items-start justify-between">
                 <div>
-                    <div class="text-xs text-slate-500">Broker Aktif</div>
-                    <div class="mt-1 text-2xl font-bold text-slate-900">
-                        {{ count($status['brokers'] ?? []) }}
+                    <div class="text-xs {{ $emergencyCount > 0 ? 'text-red-500' : 'text-slate-500' }}">Emergency Storage
                     </div>
-                    <div class="text-xs text-slate-400 mt-1">node terhubung</div>
+                    <div class="mt-1 text-2xl font-bold {{ $emergencyCount > 0 ? 'text-red-700' : 'text-slate-900' }}">
+                        {{ number_format($emergencyCount) }}
+                    </div>
+                    <div class="text-xs {{ $emergencyCount > 0 ? 'text-red-400' : 'text-slate-400' }} mt-1">log tertunda
+                    </div>
                 </div>
-                <div class="h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center">
-                    <i class="fa-solid fa-server"></i>
+                <div
+                    class="h-10 w-10 rounded-2xl flex items-center justify-center {{ $emergencyCount > 0 ? 'bg-red-500 text-white' : 'bg-slate-900 text-white' }}">
+                    <i class="fa-solid fa-database"></i>
                 </div>
             </div>
         </div>
 
     </div>
+
+    {{-- Session Alerts --}}
+    @if (session()->has('success'))
+        <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
+            <i class="fa-solid fa-circle-check mr-2"></i> {{ session('success') }}
+        </div>
+    @endif
+
+    @if (session()->has('error'))
+        <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+            <i class="fa-solid fa-circle-xmark mr-2"></i> {{ session('error') }}
+        </div>
+    @endif
 
     {{-- Detail Info --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -217,25 +234,35 @@
 
     </div>
 
-    {{-- LAG Info Box --}}
-    @if (($status['lag'] ?? -1) > 0)
-        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 flex items-start gap-4">
-            <div class="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-            <div>
-                <div class="font-semibold text-amber-800">Queue LAG Terdeteksi</div>
-                <div class="text-sm text-amber-700 mt-1">
-                    Ada <strong>{{ number_format($status['lag']) }} pesan</strong> di antrian yang belum diproses oleh
-                    worker.
-                    Pastikan queue worker sedang berjalan dengan perintah:
+    {{-- Sync Box (Hanya Muncul Jika Ada Data) --}}
+    @if ($emergencyCount > 0)
+        <div class="rounded-2xl border border-red-200 bg-red-50 p-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-start gap-4">
+                    <div class="h-12 w-12 rounded-2xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-200">
+                        <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-lg font-bold text-red-900">Sinkronisasi Log Darurat</div>
+                        <div class="text-sm text-red-700 mt-1">
+                            Ada <strong>{{ number_format($emergencyCount) }} log</strong> yang tersimpan di MySQL karena Kafka sempat bermasalah.
+                        </div>
+                    </div>
                 </div>
-                <code class="mt-2 block text-xs bg-amber-100 text-amber-900 px-3 py-2 rounded-lg font-mono">
-                    php artisan queue:work kafka --queue=logs
-                </code>
+
+                <button wire:click="syncEmergencyLogs" wire:loading.attr="disabled"
+                    @if(!($status['connected'] ?? false)) disabled @endif
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white font-bold transition-all shadow-lg shadow-red-200">
+                    <i class="fa-solid fa-rotate" wire:loading.class="animate-spin" wire:target="syncEmergencyLogs"></i>
+                    <span wire:loading.remove wire:target="syncEmergencyLogs">Sync ke Kafka Sekarang</span>
+                    <span wire:loading wire:target="syncEmergencyLogs">Memproses...</span>
+                </button>
             </div>
         </div>
-    @elseif (!($status['connected'] ?? false))
+    @endif
+
+    {{-- Troubleshooting Alert --}}
+    @if (!($status['connected'] ?? false))
         <div class="rounded-2xl border border-red-200 bg-red-50 p-5 flex items-start gap-4">
             <div class="h-10 w-10 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0">
                 <i class="fa-solid fa-circle-exclamation"></i>
@@ -253,3 +280,4 @@
     @endif
 
 </div>
+

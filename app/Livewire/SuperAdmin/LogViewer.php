@@ -22,6 +22,7 @@ class LogViewer extends Component
 
     public array $application_ids = [];
     public string $log_type = '';
+    public string $search = '';
 
     //  New Filters
     public string $validation_status = ''; // PASSED / FAILED / ''
@@ -69,6 +70,7 @@ class LogViewer extends Component
 
             'application_ids',
             'log_type',
+            'search',
             'validation_status',
             'validation_stage',
             'from',
@@ -100,6 +102,7 @@ class LogViewer extends Component
 
         $this->application_ids = [];
         $this->log_type = '';
+        $this->search = '';
         $this->validation_status = '';
         $this->validation_stage = '';
         $this->from = '';
@@ -195,6 +198,16 @@ class LogViewer extends Component
 
         if ($this->log_type !== '') {
             $query->where('log_type', $this->log_type);
+        }
+
+        if ($this->search !== '') {
+            $query->where(function($q) {
+                $q->where('log_type', 'like', '%' . $this->search . '%')
+                  ->orWhere('payload', 'like', '%' . $this->search . '%')
+                  ->orWhereHas('application', function($sq) {
+                      $sq->where('name', 'like', '%' . $this->search . '%');
+                  });
+            });
         }
 
         if ($this->from) $query->where('created_at', '>=', $this->from . ' 00:00:00');

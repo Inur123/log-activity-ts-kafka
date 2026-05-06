@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use App\Jobs\ProcessUnifiedLog;
+use App\Models\EmergencyLog;
+use App\Events\NewLogReceived;
 
 class LogController extends Controller
 {
@@ -285,7 +287,23 @@ class LogController extends Controller
                 'user_agent'     => $request->userAgent(),
             ];
 
-            ProcessUnifiedLog::dispatch($logData)->onQueue('logs');
+            try {
+                ProcessUnifiedLog::dispatch($logData)->onQueue('logs');
+            } catch (\Throwable $e) {
+                EmergencyLog::create([
+                    'payload' => $logData,
+                    'reason'  => 'KAFKA_DISPATCH_ERROR: ' . $e->getMessage()
+                ]);
+
+                // Kirim sinyal realtime ke Dashboard lewat Reverb
+                event(new NewLogReceived($logData));
+
+                return response()->json([
+                    'success'   => true,
+                    'message'   => 'Log received (secured in emergency storage)',
+                    'queued_at' => now()->toDateTimeString(),
+                ], 202);
+            }
 
             return response()->json([
                 'success'   => true,
@@ -294,15 +312,8 @@ class LogController extends Controller
             ], 202);
 
         } catch (\Throwable $e) {
-
-            Log::error('Failed to queue log', [
-                'error' => $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to process log request',
-            ], 500);
+            Log::error('LogController Store Error', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Failed to process request'], 500);
         }
     }
 
@@ -338,7 +349,17 @@ class LogController extends Controller
             'user_agent'     => request()?->userAgent(),
         ];
 
-        ProcessUnifiedLog::dispatch($validationLogData)->onQueue('logs');
+        try {
+            ProcessUnifiedLog::dispatch($validationLogData)->onQueue('logs');
+        } catch (\Throwable $e) {
+            EmergencyLog::create([
+                'payload' => $validationLogData,
+                'reason'  => 'VALIDATION_LOG_KAFKA_ERROR: ' . $e->getMessage()
+            ]);
+
+            // Kirim sinyal realtime ke Dashboard lewat Reverb
+            event(new NewLogReceived($validationLogData));
+        }
     }
 
     private function allowedLogTypes(): array
