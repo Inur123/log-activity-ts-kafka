@@ -95,17 +95,17 @@ class KafkaHealthService
      * Hitung LAG total (pesan yang belum diproses worker).
      * LAG = (latest offset - committed offset) per partition.
      */
-    public function getTotalLag(): int
+    private function getTotalLag(): int
     {
         try {
             $conf = new Conf();
             $conf->set('bootstrap.servers', $this->broker);
             $conf->set('group.id', $this->consumerGroup);
-            $conf->set('socket.timeout.ms', '3000');
+            $conf->set('socket.timeout.ms', '1000');
             $conf->set('enable.auto.commit', 'false');
 
             $consumer   = new KafkaConsumer($conf);
-            $metadata   = $consumer->getMetadata(false, $consumer->newTopic($this->topic), 3000);
+            $metadata   = $consumer->getMetadata(false, $consumer->newTopic($this->topic), 1000);
             $totalLag   = 0;
 
             foreach ($metadata->getTopics() as $topicMeta) {
@@ -116,11 +116,11 @@ class KafkaHealthService
 
                     // Latest offset (high watermark)
                     [$lowOffset, $highOffset] = [RD_KAFKA_OFFSET_BEGINNING, RD_KAFKA_OFFSET_END];
-                    $consumer->queryWatermarkOffsets($this->topic, $pid, $lowOffset, $highOffset, 2000);
+                    $consumer->queryWatermarkOffsets($this->topic, $pid, $lowOffset, $highOffset, 1000);
 
                     // Committed offset untuk consumer group
                     $topicPartitions = [new TopicPartition($this->topic, $pid)];
-                    $committed = $consumer->getCommittedOffsets($topicPartitions, 2000);
+                    $committed = $consumer->getCommittedOffsets($topicPartitions, 1000);
 
                     $committedOffset = $committed[0]->getOffset();
 
@@ -143,13 +143,59 @@ class KafkaHealthService
 
     /**
      * Ambil semua info sekaligus (untuk ditampilkan di dashboard).
+     * Di-cache selama 15 detik agar halaman tidak lambat saat Kafka mati.
      */
     public function getStatus(): array
     {
-        $connected  = $this->isConnected();
-        $brokers    = $connected ? $this->getBrokers() : [];
-        $partitions = $connected ? $this->getTopicPartitionCount() : 0;
-        $lag        = $connected ? $this->getTotalLag() : -1;
+        return cache()->remember('kafka_health_status', 15, function () {
+            return $this->fetchStatus();
+        });
+    }
+
+    /**
+     * Ambil status fresh dari Kafka (tanpa cache).
+     * Menggunakan 1 koneksi Producer untuk broker + partition,
+     * dan 1 koneksi Consumer khusus untuk LAG.
+     */
+    private function fetchStatus(): array
+    {
+        // Step 1: Cek koneksi + ambil broker & partition sekaligus dengan 1 koneksi
+        $connected  = false;
+        $brokers    = [];
+        $partitions = 0;
+
+        try {
+            $conf = new Conf();
+            $conf->set('bootstrap.servers', $this->broker);
+            $conf->set('socket.timeout.ms', '1000');
+
+            $producer = new Producer($conf);
+
+            // Ambil metadata global (termasuk daftar broker)
+            $metadata = $producer->getMetadata(true, null, 1000);
+
+            if ($metadata !== null) {
+                $connected = true;
+
+                // Broker list
+                foreach ($metadata->getBrokers() as $b) {
+                    $brokers[] = $b->getHost() . ':' . $b->getPort();
+                }
+
+                // Partition count dari topic
+                foreach ($metadata->getTopics() as $t) {
+                    if ($t->getTopic() === $this->topic) {
+                        $partitions = count($t->getPartitions());
+                        break;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $connected = false;
+        }
+
+        // Step 2: Hitung LAG hanya jika connected
+        $lag = $connected ? $this->getTotalLag() : -1;
 
         /**
          * Off-by-one correction:

@@ -234,29 +234,28 @@
 
     </div>
 
-    {{-- Sync Box (Hanya Muncul Jika Ada Data) --}}
+    {{-- Auto-Sync Info (Muncul Jika Ada Data Darurat) --}}
     @if ($emergencyCount > 0)
-        <div class="rounded-2xl border border-red-200 bg-red-50 p-6">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex items-start gap-4">
-                    <div class="h-12 w-12 rounded-2xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-200">
-                        <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+            <div class="flex items-start gap-4">
+                <div class="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <div class="font-semibold text-amber-900">Auto-Sync Aktif</div>
+                    <div class="text-sm text-amber-700 mt-1">
+                        Ada <strong>{{ number_format($emergencyCount) }} log</strong> yang tersimpan di MySQL karena Kafka sempat bermasalah.
+                        @if ($status['connected'] ?? false)
+                            Sistem akan <strong>otomatis mengirim ulang</strong> data ini ke Kafka dalam waktu maksimal 5 menit.
+                        @else
+                            Sync akan dimulai otomatis begitu <strong>koneksi Kafka pulih</strong>.
+                        @endif
                     </div>
-                    <div>
-                        <div class="text-lg font-bold text-red-900">Sinkronisasi Log Darurat</div>
-                        <div class="text-sm text-red-700 mt-1">
-                            Ada <strong>{{ number_format($emergencyCount) }} log</strong> yang tersimpan di MySQL karena Kafka sempat bermasalah.
-                        </div>
+                    <div class="mt-2 flex items-center gap-2 text-xs text-amber-600">
+                        <i class="fa-solid fa-rotate fa-spin-pulse"></i>
+                        <span>Cron berjalan setiap 5 menit — tanpa intervensi manual</span>
                     </div>
                 </div>
-
-                <button wire:click="syncEmergencyLogs" wire:loading.attr="disabled"
-                    @if(!($status['connected'] ?? false)) disabled @endif
-                    class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white font-bold transition-all shadow-lg shadow-red-200">
-                    <i class="fa-solid fa-rotate" wire:loading.class="animate-spin" wire:target="syncEmergencyLogs"></i>
-                    <span wire:loading.remove wire:target="syncEmergencyLogs">Sync ke Kafka Sekarang</span>
-                    <span wire:loading wire:target="syncEmergencyLogs">Memproses...</span>
-                </button>
             </div>
         </div>
     @endif
